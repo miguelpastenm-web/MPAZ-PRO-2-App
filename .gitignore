@@ -19,3 +19,11 @@ gradle-app.setting
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+# Android Studio & Local SDK
+local.properties
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
