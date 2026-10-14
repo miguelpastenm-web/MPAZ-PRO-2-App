@@ -19,6 +19,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import cl.duoc.mpazpro.ui.screens.admin.TeacherFormScreen
 
 /**
  * Grafo centralizado de navegacion con transiciones fluidas (IE 2.1.1 y IE 2.2.2)
@@ -65,9 +66,7 @@ fun AppNavigation(
             )
         }
         composable(AppScreens.FormularioDocente.route) {
-            BaseScreenPlaceholder(
-                title = "Modulo Docente / UTP",
-                description = "Formularios de asignacion curricular y validacion.",
+            TeacherFormScreen(
                 onBack = { navController.popBackStack() }
             )
         }
