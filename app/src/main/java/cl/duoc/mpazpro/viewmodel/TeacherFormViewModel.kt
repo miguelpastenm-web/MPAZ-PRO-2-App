@@ -15,11 +15,48 @@ class TeacherFormViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TeacherFormUiState())
     val uiState: StateFlow<TeacherFormUiState> = _uiState.asStateFlow()
 
+    // --- Funciones individuales de validacion logica (Facilita modificacion en vivo en la Defensa) ---
+
+    fun validarNombre(nombre: String): String? {
+        return when {
+            nombre.isBlank() -> "El nombre del docente es obligatorio"
+            nombre.trim().length < 4 -> "El nombre debe tener al menos 4 caracteres"
+            else -> null
+        }
+    }
+
+    fun validarCodigo(codigo: String): String? {
+        return when {
+            codigo.isBlank() -> "El código o identificador docente es obligatorio"
+            codigo.trim().length < 4 -> "El código debe tener al menos 4 caracteres (ej: DOC-101)"
+            else -> null
+        }
+    }
+
+    fun validarIntentos(intentos: String): String? {
+        val num = intentos.toIntOrNull()
+        return when {
+            intentos.isBlank() -> "Debe ingresar el número de intentos"
+            num == null -> "El valor ingresado debe ser numérico"
+            num !in 1..5 -> "El límite de intentos debe estar entre 1 y 5"
+            else -> null
+        }
+    }
+
+    fun validarFecha(fecha: String): String? {
+        return when {
+            fecha.isBlank() -> "La fecha límite de rendición es obligatoria"
+            else -> null
+        }
+    }
+
+    // --- Manejo de eventos de entrada ---
+
     fun onNombreDocenteChange(nombre: String) {
         _uiState.update { currentState ->
             currentState.copy(
                 nombreDocente = nombre,
-                nombreDocenteError = if (nombre.isNotBlank() && nombre.trim().length >= 3) null else currentState.nombreDocenteError,
+                nombreDocenteError = if (currentState.nombreDocenteError != null) validarNombre(nombre) else null,
                 isSuccess = false
             )
         }
@@ -29,19 +66,18 @@ class TeacherFormViewModel : ViewModel() {
         _uiState.update { currentState ->
             currentState.copy(
                 codigoDocente = codigo,
-                codigoDocenteError = if (codigo.isNotBlank() && codigo.trim().length >= 4) null else currentState.codigoDocenteError,
+                codigoDocenteError = if (currentState.codigoDocenteError != null) validarCodigo(codigo) else null,
                 isSuccess = false
             )
         }
     }
 
     fun onMaxIntentosChange(intentos: String) {
-        // Solo permitir caracteres numericos
         val filtrado = intentos.filter { it.isDigit() }
         _uiState.update { currentState ->
             currentState.copy(
                 maxIntentos = filtrado,
-                maxIntentosError = null,
+                maxIntentosError = if (currentState.maxIntentosError != null) validarIntentos(filtrado) else null,
                 isSuccess = false
             )
         }
@@ -51,7 +87,7 @@ class TeacherFormViewModel : ViewModel() {
         _uiState.update { currentState ->
             currentState.copy(
                 fechaLimite = fecha,
-                fechaLimiteError = if (fecha.isNotBlank()) null else currentState.fechaLimiteError,
+                fechaLimiteError = if (currentState.fechaLimiteError != null) validarFecha(fecha) else null,
                 isSuccess = false
             )
         }
@@ -66,57 +102,26 @@ class TeacherFormViewModel : ViewModel() {
         }
     }
 
+    // --- Accion de Guardado ---
+
     fun validarYGuardar(): Boolean {
-        val estadoActual = _uiState.value
+        val actual = _uiState.value
 
-        var hayErrores = false
-        var errorNombre: String? = null
-        var errorCodigo: String? = null
-        var errorIntentos: String? = null
-        var errorFecha: String? = null
+        val errNombre = validarNombre(actual.nombreDocente)
+        val errCodigo = validarCodigo(actual.codigoDocente)
+        val errIntentos = validarIntentos(actual.maxIntentos)
+        val errFecha = validarFecha(actual.fechaLimite)
 
-        // 1. Validacion de Nombre Docente
-        if (estadoActual.nombreDocente.isBlank()) {
-            errorNombre = "El nombre del docente es obligatorio"
-            hayErrores = true
-        } else if (estadoActual.nombreDocente.trim().length < 3) {
-            errorNombre = "El nombre debe tener al menos 3 caracteres"
-            hayErrores = true
-        }
-
-        // 2. Validacion de Codigo/Correo Ficticio
-        if (estadoActual.codigoDocente.isBlank()) {
-            errorCodigo = "El codigo o identificador docente es obligatorio"
-            hayErrores = true
-        } else if (estadoActual.codigoDocente.trim().length < 4) {
-            errorCodigo = "El codigo debe tener al menos 4 caracteres (ej: DOC-101)"
-            hayErrores = true
-        }
-
-        // 3. Validacion de Maximo de Intentos (1 a 5)
-        val intentosNum = estadoActual.maxIntentos.toIntOrNull()
-        if (intentosNum == null) {
-            errorIntentos = "Debe ingresar un numero valido de intentos"
-            hayErrores = true
-        } else if (intentosNum !in 1..5) {
-            errorIntentos = "El limite de intentos debe estar entre 1 y 5"
-            hayErrores = true
-        }
-
-        // 4. Validacion de Fecha Limite
-        if (estadoActual.fechaLimite.isBlank()) {
-            errorFecha = "La fecha limite de rendicion es obligatoria"
-            hayErrores = true
-        }
+        val hayErrores = errNombre != null || errCodigo != null || errIntentos != null || errFecha != null
 
         _uiState.update { currentState ->
             currentState.copy(
-                nombreDocenteError = errorNombre,
-                codigoDocenteError = errorCodigo,
-                maxIntentosError = errorIntentos,
-                fechaLimiteError = errorFecha,
+                nombreDocenteError = errNombre,
+                codigoDocenteError = errCodigo,
+                maxIntentosError = errIntentos,
+                fechaLimiteError = errFecha,
                 isSuccess = !hayErrores,
-                successMessage = if (!hayErrores) "Parametros guardados exitosamente para ${estadoActual.asignatura}" else null
+                successMessage = if (!hayErrores) "Parámetros guardados exitosamente para ${actual.asignatura}" else null
             )
         }
 

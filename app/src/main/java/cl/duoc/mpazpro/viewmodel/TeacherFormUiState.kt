@@ -17,4 +17,17 @@ data class TeacherFormUiState(
     val asignaturaError: String? = null,
     val isSuccess: Boolean = false,
     val successMessage: String? = null
-)
+) {
+    /**
+     * Evalua si todos los campos requeridos son validos (IE 2.2.1)
+     */
+    val isFormValid: Boolean
+        get() = nombreDocente.isNotBlank() &&
+                codigoDocente.isNotBlank() &&
+                maxIntentos.isNotBlank() &&
+                fechaLimite.isNotBlank() &&
+                nombreDocenteError == null &&
+                codigoDocenteError == null &&
+                maxIntentosError == null &&
+                fechaLimiteError == null
+}
