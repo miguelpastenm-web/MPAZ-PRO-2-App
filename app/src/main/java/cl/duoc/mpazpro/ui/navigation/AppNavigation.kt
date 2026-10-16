@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cl.duoc.mpazpro.ui.screens.admin.TeacherFormScreen
+import cl.duoc.mpazpro.ui.screens.student.StudentActivityScreen
 
 /**
  * Grafo centralizado de navegacion con transiciones fluidas (IE 2.1.1 y IE 2.2.2)
@@ -71,16 +72,14 @@ fun AppNavigation(
             )
         }
         composable(AppScreens.ActividadesEstudiante.route) {
-            BaseScreenPlaceholder(
-                title = "Portal Estudiante 2.º Basico",
-                description = "Actividades didacticas, apoyo auditivo y visual.",
+            StudentActivityScreen(
                 onBack = { navController.popBackStack() }
             )
         }
         composable(AppScreens.PerfilCamara.route) {
             BaseScreenPlaceholder(
                 title = "Perfil y Recursos Nativos",
-                description = "Modulo de captura con camara y gestion de permisos.",
+                description = "Módulo de captura con cámara y gestión de permisos.",
                 onBack = { navController.popBackStack() }
             )
         }
@@ -120,7 +119,7 @@ private fun RoleSelectionPlaceholderScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Selecciona un modulo para navegar:",
+                text = "Selecciona un módulo para navegar:",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -148,7 +147,7 @@ private fun RoleSelectionPlaceholderScreen(
             ) {
                 Icon(Icons.Default.School, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("Estudiante 2.º Basico", style = MaterialTheme.typography.titleMedium)
+                Text("Estudiante 2.º Básico", style = MaterialTheme.typography.titleMedium)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -161,7 +160,7 @@ private fun RoleSelectionPlaceholderScreen(
             ) {
                 Icon(Icons.Default.CameraAlt, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("Perfil (Recurso Camara)", style = MaterialTheme.typography.titleMedium)
+                Text("Perfil (Recurso Cámara)", style = MaterialTheme.typography.titleMedium)
             }
         }
     }
