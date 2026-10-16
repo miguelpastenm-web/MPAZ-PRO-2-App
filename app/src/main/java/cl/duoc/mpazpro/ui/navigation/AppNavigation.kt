@@ -21,6 +21,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cl.duoc.mpazpro.ui.screens.admin.ExportReportScreen
+import cl.duoc.mpazpro.ui.screens.profile.ProfileCameraScreen
 import cl.duoc.mpazpro.ui.screens.admin.TeacherFormScreen
 import cl.duoc.mpazpro.ui.screens.student.StudentActivityScreen
 
@@ -86,9 +87,7 @@ fun AppNavigation(
             )
         }
         composable(AppScreens.PerfilCamara.route) {
-            BaseScreenPlaceholder(
-                title = "Perfil y Recursos Nativos",
-                description = "Módulo de captura con cámara y gestión de permisos.",
+            ProfileCameraScreen(
                 onBack = { navController.popBackStack() }
             )
         }
