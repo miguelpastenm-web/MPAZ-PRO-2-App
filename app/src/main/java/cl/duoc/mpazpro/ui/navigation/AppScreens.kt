@@ -8,4 +8,5 @@ sealed class AppScreens(val route: String) {
     data object FormularioDocente : AppScreens("formulario_docente")
     data object ActividadesEstudiante : AppScreens("actividades_estudiante")
     data object PerfilCamara : AppScreens("perfil_camara")
+    data object ExportarReporte : AppScreens("exportar_reporte")
 }

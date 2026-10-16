@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.FolderShared
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -19,6 +20,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import cl.duoc.mpazpro.ui.screens.admin.ExportReportScreen
 import cl.duoc.mpazpro.ui.screens.admin.TeacherFormScreen
 import cl.duoc.mpazpro.ui.screens.student.StudentActivityScreen
 
@@ -63,16 +65,23 @@ fun AppNavigation(
             RoleSelectionPlaceholderScreen(
                 onNavigateToTeacher = { navController.navigate(AppScreens.FormularioDocente.route) },
                 onNavigateToStudent = { navController.navigate(AppScreens.ActividadesEstudiante.route) },
+                onNavigateToExport = { navController.navigate(AppScreens.ExportarReporte.route) },
                 onNavigateToProfile = { navController.navigate(AppScreens.PerfilCamara.route) }
             )
         }
         composable(AppScreens.FormularioDocente.route) {
             TeacherFormScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNavigateToExport = { navController.navigate(AppScreens.ExportarReporte.route) }
             )
         }
         composable(AppScreens.ActividadesEstudiante.route) {
             StudentActivityScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(AppScreens.ExportarReporte.route) {
+            ExportReportScreen(
                 onBack = { navController.popBackStack() }
             )
         }
@@ -91,6 +100,7 @@ fun AppNavigation(
 private fun RoleSelectionPlaceholderScreen(
     onNavigateToTeacher: () -> Unit,
     onNavigateToStudent: () -> Unit,
+    onNavigateToExport: () -> Unit,
     onNavigateToProfile: () -> Unit
 ) {
     Scaffold(
@@ -124,39 +134,52 @@ private fun RoleSelectionPlaceholderScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
             Button(
                 onClick = onNavigateToTeacher,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(54.dp)
             ) {
                 Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
                 Text("Panel Docente / UTP", style = MaterialTheme.typography.titleMedium)
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             FilledTonalButton(
                 onClick = onNavigateToStudent,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(54.dp)
             ) {
                 Icon(Icons.Default.School, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
                 Text("Estudiante 2.º Básico", style = MaterialTheme.typography.titleMedium)
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
+
+            FilledTonalButton(
+                onClick = onNavigateToExport,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp)
+            ) {
+                Icon(Icons.Default.FolderShared, contentDescription = null)
+                Spacer(modifier = Modifier.width(12.dp))
+                Text("Reportes (Almacenamiento Local)", style = MaterialTheme.typography.titleMedium)
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
 
             OutlinedButton(
                 onClick = onNavigateToProfile,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(54.dp)
             ) {
                 Icon(Icons.Default.CameraAlt, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))

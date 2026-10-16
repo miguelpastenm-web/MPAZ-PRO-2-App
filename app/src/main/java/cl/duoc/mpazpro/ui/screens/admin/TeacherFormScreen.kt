@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.FolderShared
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -32,6 +33,7 @@ import cl.duoc.mpazpro.viewmodel.TeacherFormViewModel
 @Composable
 fun TeacherFormScreen(
     onBack: () -> Unit,
+    onNavigateToExport: (() -> Unit)? = null,
     viewModel: TeacherFormViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -217,6 +219,20 @@ fun TeacherFormScreen(
                     .height(48.dp)
             ) {
                 Text("Limpiar Formulario")
+            }
+
+            if (onNavigateToExport != null) {
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                FilledTonalButton(
+                    onClick = onNavigateToExport,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                ) {
+                    Icon(Icons.Default.FolderShared, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Exportar Reportes a Almacenamiento Local")
+                }
             }
         }
     }
