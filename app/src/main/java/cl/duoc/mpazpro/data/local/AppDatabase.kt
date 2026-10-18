@@ -20,7 +20,7 @@ import cl.duoc.mpazpro.data.local.entities.ResultadoPruebaEntity
         ActividadEntity::class,
         ResultadoPruebaEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -37,11 +37,18 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
+
+
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     "mpaz_pro_database"
-                ).build()
+                )
+                    .addMigrations(MIGRATION_1_2)
+                    .addCallback(DatosInicialesCallback())
+                    .build()
+
+
 
                 INSTANCE = instance
                 instance
