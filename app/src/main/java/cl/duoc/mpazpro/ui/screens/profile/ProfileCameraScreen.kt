@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.FileOutputStream
+import android.graphics.BitmapFactory
 
 /**
  * Pantalla de Perfil con acceso a Camara y gestion de permisos en tiempo de ejecucion (IE 2.4.1 y IE 2.4.2)
@@ -52,7 +53,20 @@ fun ProfileCameraScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    var fotoBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    var fotoBitmap by remember {
+        mutableStateOf<Bitmap?>(
+            runCatching {
+                val archivoFoto = File(context.filesDir, "avatar_perfil.png")
+
+                if (archivoFoto.exists()) {
+                    BitmapFactory.decodeFile(archivoFoto.absolutePath)
+                } else {
+                    null
+                }
+            }.getOrNull()
+        )
+    }
     var tienePermiso by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
