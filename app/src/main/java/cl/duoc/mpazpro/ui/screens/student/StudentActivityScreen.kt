@@ -28,6 +28,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.platform.LocalContext
+import cl.duoc.mpazpro.data.local.AppDatabase
+import cl.duoc.mpazpro.data.repository.AppRepository
+import cl.duoc.mpazpro.viewmodel.StudentActivityViewModel
+import cl.duoc.mpazpro.viewmodel.StudentActivityViewModelFactory
+
 
 /**
  * Modelo de datos simple para representar una actividad didactica de 2.° Basico
@@ -50,8 +58,64 @@ data class ActividadDidactica(
 fun StudentActivityScreen(
     onBack: () -> Unit
 ) {
+
+    // Obtenemos el contexto para acceder a nuestra base de datos.
+    val context = LocalContext.current
+
+    // Preparamos el repositorio y la Factory una sola vez.
+    val factory = remember(context) {
+        val database = AppDatabase.getDatabase(context)
+        val repository = AppRepository(database)
+        StudentActivityViewModelFactory(repository)
+    }
+
+    // Creamos el ViewModel que consultará las actividades.
+    val studentViewModel: StudentActivityViewModel = viewModel(
+        factory = factory
+    )
+
+    // Observamos las actividades y el estado de carga.
+    val actividadesRoom by studentViewModel.actividades
+        .collectAsStateWithLifecycle()
+
+    val cargandoRoom by studentViewModel.estaCargando
+        .collectAsStateWithLifecycle()
+
+    val errorRoom by studentViewModel.mensajeError
+        .collectAsStateWithLifecycle()
+
+    // Convertimos las actividades de Room al formato
+    // que ya utiliza la pantalla del estudiante.
+    val actividadesConvertidas = remember(actividadesRoom) {
+        actividadesRoom.map { actividad ->
+
+            val opciones = listOf(
+                actividad.respuestaCorrecta,
+                actividad.alternativaIncorrecta1,
+                actividad.alternativaIncorrecta2,
+                actividad.alternativaIncorrecta3
+            ).shuffled()
+
+            ActividadDidactica(
+                id = actividad.id,
+                asignatura = studentViewModel.obtenerNombreAsignatura(
+                    actividad.oaId
+                ),
+                pregunta = actividad.pregunta,
+                audioInstruccion = actividad.pregunta,
+                opciones = opciones,
+                respuestaCorrectaIndex = opciones.indexOf(
+                    actividad.respuestaCorrecta
+                ),
+                explicacionGuiada = "Lee la pregunta con atención y elige la respuesta que consideres correcta."
+            )
+        }
+    }
+
+
     // Lista de actividades didacticas de prueba (alineadas a los OAs de 2.º Basico)
-    val actividades = remember {
+    val actividadesDePrueba = remember {
+
         listOf(
             ActividadDidactica(
                 id = 1,
@@ -83,13 +147,29 @@ fun StudentActivityScreen(
         )
     }
 
+    // Usamos las preguntas de Room cuando terminan de cargar.
+    // Mientras tanto, mantenemos la lista vacía.
+    val actividades = if (cargandoRoom || errorRoom != null) {
+        emptyList()
+    } else {
+        actividadesConvertidas
+    }
+
+
     var indiceActual by remember { mutableIntStateOf(0) }
     var estaCargando by remember { mutableStateOf(true) }
     var opcionSeleccionada by remember { mutableStateOf<Int?>(null) }
     var mostrarPista by remember { mutableStateOf(false) }
     var audioReproduciendo by remember { mutableStateOf(false) }
 
-    val actividadActual = actividades[indiceActual]
+
+    val indiceSeguro = indiceActual.coerceIn(
+        0,
+        (actividades.size - 1).coerceAtLeast(0)
+    )
+
+    val actividadActual = actividades.getOrNull(indiceSeguro)
+
     val scrollState = rememberScrollState()
 
     // Simulacion de carga asincrona para evidenciar el CircularProgressIndicator
@@ -128,7 +208,7 @@ fun StudentActivityScreen(
             contentAlignment = Alignment.Center
         ) {
             // Animacion 1: Loader dinamico mientras se cargan las actividades
-            if (estaCargando) {
+            if (estaCargando || cargandoRoom) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
@@ -145,8 +225,17 @@ fun StudentActivityScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
+
+            } else if (errorRoom != null || actividadActual == null) {
+                Text(
+                    text = errorRoom ?: "No hay actividades disponibles.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(24.dp)
+                )
             } else {
                 Column(
+
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(scrollState)
