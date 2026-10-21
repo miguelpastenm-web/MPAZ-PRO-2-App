@@ -82,6 +82,15 @@ class AppRepository(
     suspend fun insertarResultado(resultado: ResultadoPruebaEntity) =
         resultadoDao.insertar(resultado)
 
+    // Guarda todos los resultados de una evaluación
+    // en una única operación de Room.
+    suspend fun insertarResultados(
+        resultados: List<ResultadoPruebaEntity>
+    ) {
+        resultadoDao.insertarTodos(resultados)
+    }
+
+
     suspend fun actualizarResultado(resultado: ResultadoPruebaEntity) =
         resultadoDao.actualizar(resultado)
 
