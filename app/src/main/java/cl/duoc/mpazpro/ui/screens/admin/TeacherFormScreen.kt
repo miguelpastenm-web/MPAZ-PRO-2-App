@@ -139,7 +139,7 @@ fun TeacherFormScreen(
             CustomValidatedField(
                 value = uiState.codigoDocente,
                 onValueChange = { viewModel.onCodigoDocenteChange(it) },
-                label = "Código o Correo Docente (Ficticio)",
+                label = "Código o Correo Institucional",
                 placeholder = "Ej. DOC-102 o docente@marcelapaz.cl",
                 leadingIcon = Icons.Default.Badge,
                 errorMessage = uiState.codigoDocenteError
@@ -231,7 +231,7 @@ fun TeacherFormScreen(
                 ) {
                     Icon(Icons.Default.FolderShared, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Exportar Reportes a Almacenamiento Local")
+                    Text("Generar y Exportar Reportes")
                 }
             }
         }

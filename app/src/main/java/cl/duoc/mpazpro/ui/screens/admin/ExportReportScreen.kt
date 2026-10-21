@@ -89,7 +89,7 @@ fun ExportReportScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Exportación y Almacenamiento") },
+                title = { Text("Reportes y Evaluaciones") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -129,7 +129,7 @@ fun ExportReportScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Seguridad y Sandbox Interno (IE 2.4.1)",
+                            text = "Privacidad y Resguardo Institucional",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onTertiaryContainer
@@ -137,7 +137,7 @@ fun ExportReportScreen(
                     }
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "El almacenamiento en context.filesDir utiliza el sandbox Linux por UID (permisos 700). No requiere permisos peligrosos como WRITE_EXTERNAL_STORAGE y garantiza aislamiento total de los datos de los estudiantes.",
+                        text = "Los reportes se guardan en la memoria interna de la aplicación, protegiendo los datos académicos y de evaluación de los estudiantes de Segundo Básico.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onTertiaryContainer
                     )
@@ -217,7 +217,7 @@ fun ExportReportScreen(
                     ) {
                         Icon(Icons.Default.Save, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Guardar en Almacenamiento Interno (filesDir)")
+                        Text("Guardar Reporte en Memoria Local")
                     }
 
                     // Boton 2: Exportacion externa mediante SAF (Storage Access Framework)
@@ -231,7 +231,7 @@ fun ExportReportScreen(
                     ) {
                         Icon(Icons.Default.FileDownload, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Exportar con Gestor de Archivos (SAF)")
+                        Text("Exportar / Descargar con Gestor de Archivos")
                     }
                 }
             }
@@ -297,7 +297,7 @@ fun ExportReportScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Archivos en context.filesDir (${listaArchivos.size})",
+                            text = "Reportes Almacenados en el Dispositivo (${listaArchivos.size})",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -307,7 +307,7 @@ fun ExportReportScreen(
                     }
 
                     Text(
-                        text = "Inspección en Device File Explorer: data/data/cl.duoc.mpazpro/files/",
+                        text = "Archivos oficiales generados para respaldo o revisión pedagógica.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
