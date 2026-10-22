@@ -422,7 +422,11 @@ fun StudentActivityScreen(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = if (acerto) "¡Excelente trabajo!" else "¡Casi lo logras! Inténtalo de nuevo",
+
+                                        text = if (acerto)
+                                            "¡Excelente trabajo!"
+                                        else
+                                            "¡Sigue practicando! Avanza al siguiente desafío.",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = if (acerto) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
