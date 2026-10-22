@@ -7,6 +7,7 @@ import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import org.json.JSONObject
 
 /**
  * Gestor utilitario de almacenamiento interno y exportacion de archivos (IE 2.4.1 y IE 2.4.2)
@@ -16,8 +17,7 @@ import java.util.Locale
  */
 object ReportStorageManager {
 
-    private const val PREFIX_REPORTE = "reporte_"
-    private const val EXTENSION_JSON = ".json"
+
 
     /**
      * Genera la estructura del reporte academico en formato JSON para Segundo Basico
@@ -33,11 +33,15 @@ object ReportStorageManager {
   "escuela": "Escuela Escritora Marcela Paz",
   "comuna": "San Bernardo",
   "nivelEducativo": "Segundo Básico",
-  "curso": "",
-  "docenteEvaluador": "",
-  "asignatura": "",
-  "fechaEmision": "",
-  "resumenEvaluacion": {
+  
+  
+  "curso": ${JSONObject.quote(curso)},
+  "docenteEvaluador": ${JSONObject.quote(docente)},
+  "asignatura": ${JSONObject.quote(asignatura)},
+  "fechaEmision": ${JSONObject.quote(fechaActual)},
+
+
+   "resumenEvaluacion": {
     "matriculaTotal": 28,
     "evaluacionesRendidas": 26,
     "porcentajeLogroGlobal": 89.2,
@@ -78,11 +82,31 @@ object ReportStorageManager {
         contenido: String
     ): Result<File> {
         return runCatching {
-            val nombreLimpio = if (nombreArchivo.endsWith(".json") || nombreArchivo.endsWith(".txt")) {
-                nombreArchivo
-            } else {
-                ".json"
+
+            val nombreBase = nombreArchivo.trim()
+
+            require(nombreBase.isNotEmpty()) {
+                "El nombre del archivo no puede estar vacío."
             }
+
+            require(
+                !nombreBase.contains("/") &&
+                        !nombreBase.contains("\\") &&
+                        nombreBase != "." &&
+                        nombreBase != ".."
+            ) {
+                "El nombre del archivo contiene caracteres no permitidos."
+            }
+
+            val nombreLimpio = if (
+                nombreBase.endsWith(".json", ignoreCase = true) ||
+                nombreBase.endsWith(".txt", ignoreCase = true)
+            ) {
+                nombreBase
+            } else {
+                "$nombreBase.json"
+            }
+
 
             val archivo = File(context.filesDir, nombreLimpio)
             FileOutputStream(archivo).use { output ->
@@ -95,18 +119,34 @@ object ReportStorageManager {
     /**
      * Exporta el contenido a una ubicacion elegida por el usuario mediante SAF (Storage Access Framework)
      */
+
+    /**
+     * Exporta un reporte a la ubicación elegida por el usuario.
+     * Utiliza Storage Access Framework (SAF).
+     */
     fun exportarConSAF(
         context: Context,
         uri: Uri,
         contenido: String
     ): Result<Boolean> {
         return runCatching {
-            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                outputStream.write(contenido.toByteArray(Charsets.UTF_8))
-                true
-            } ?: false
+
+            // Abrimos el archivo seleccionado por el usuario.
+            val outputStream = context.contentResolver
+                .openOutputStream(uri, "wt")
+                ?: error("No se pudo abrir el archivo para exportar.")
+
+            // Escribimos el contenido y cerramos el archivo.
+            outputStream.use { archivo ->
+                archivo.write(contenido.toByteArray(Charsets.UTF_8))
+                archivo.flush()
+            }
+
+            // Confirmamos que la escritura terminó.
+            true
         }
     }
+
 
     /**
      * Lista los reportes guardados en el almacenamiento interno privado

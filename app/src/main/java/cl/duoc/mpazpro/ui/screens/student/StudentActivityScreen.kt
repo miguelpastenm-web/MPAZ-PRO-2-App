@@ -84,6 +84,14 @@ fun StudentActivityScreen(
     val errorRoom by studentViewModel.mensajeError
         .collectAsStateWithLifecycle()
 
+    // Observamos el estado del guardado de los resultados.
+    val guardandoResultados by studentViewModel.guardandoResultados
+        .collectAsStateWithLifecycle()
+
+    val resultadosGuardados by studentViewModel.resultadosGuardados
+        .collectAsStateWithLifecycle()
+
+
     // Convertimos las actividades de Room al formato
     // que ya utiliza la pantalla del estudiante.
     val actividadesConvertidas = remember(actividadesRoom) {
@@ -159,6 +167,15 @@ fun StudentActivityScreen(
     var indiceActual by remember { mutableIntStateOf(0) }
     var estaCargando by remember { mutableStateOf(true) }
     var opcionSeleccionada by remember { mutableStateOf<Int?>(null) }
+    // Guardamos temporalmente si acertó cada pregunta.
+    // La clave corresponde al ID de la actividad.
+    val respuestasRegistradas = remember {
+        mutableStateMapOf<Int, Boolean>()
+    }
+
+
+
+
     var mostrarPista by remember { mutableStateOf(false) }
     var audioReproduciendo by remember { mutableStateOf(false) }
 
@@ -341,11 +358,22 @@ fun StudentActivityScreen(
                         }
 
                         Button(
+
                             onClick = {
                                 if (opcionSeleccionada == null) {
+
+                                    // Marcamos la alternativa que eligió el estudiante.
                                     opcionSeleccionada = index
+
+                                    // Comprobamos si respondió correctamente.
+                                    val esCorrecta =
+                                        index == actividadActual.respuestaCorrectaIndex
+
+                                    // Guardamos el resultado usando el ID de la pregunta.
+                                    respuestasRegistradas[actividadActual.id] = esCorrecta
                                 }
                             },
+
                             colors = botonColor,
                             shape = RoundedCornerShape(16.dp),
                             modifier = Modifier
@@ -394,7 +422,11 @@ fun StudentActivityScreen(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = if (acerto) "¡Excelente trabajo!" else "¡Casi lo logras! Inténtalo de nuevo",
+
+                                        text = if (acerto)
+                                            "¡Excelente trabajo!"
+                                        else
+                                            "¡Sigue practicando! Avanza al siguiente desafío.",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = if (acerto) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
@@ -405,19 +437,88 @@ fun StudentActivityScreen(
 
                                 // Boton Siguiente
                                 Button(
+
+
                                     onClick = {
-                                        if (indiceActual < actividades.size - 1) {
-                                            indiceActual++
+                                        if (indiceSeguro < actividades.size - 1) {
+
+                                            // Avanzamos a la siguiente pregunta.
+                                            indiceActual = indiceSeguro + 1
+
                                         } else {
-                                            indiceActual = 0 // Reiniciar ciclo
+
+                                            // Comprobamos que todas las preguntas estén respondidas.
+                                            val todasRespondidas = actividades.all { actividad ->
+                                                respuestasRegistradas.containsKey(actividad.id)
+                                            }
+
+                                            if (todasRespondidas && !resultadosGuardados && !guardandoResultados) {
+
+                                                // Enviamos las respuestas al ViewModel para guardarlas en Room.
+                                                studentViewModel.guardarResultados(
+                                                    respuestas = respuestasRegistradas.toMap()
+                                                )
+
+                                                // No reiniciamos las preguntas todavía.
+                                                // Esperaremos la confirmación del ViewModel.
+                                            }
                                         }
                                     },
-                                    modifier = Modifier.fillMaxWidth().height(48.dp)
+
+
+
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(48.dp),
+
+                                    enabled = !guardandoResultados && !resultadosGuardados
+
                                 ) {
-                                    Text("Siguiente Desafío")
+
+                                    val textoBoton = when {
+                                        guardandoResultados -> "Guardando resultados..."
+                                        resultadosGuardados -> "Evaluación guardada"
+                                        indiceSeguro == actividades.size - 1 -> "Finalizar evaluación"
+                                        else -> "Siguiente Desafío"
+                                    }
+
+                                    Text(textoBoton)
+
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.ArrowForward,
+                                        contentDescription = null
+                                    )
+
                                 }
+
+                                if (resultadosGuardados) {
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    Button(
+                                        onClick = {
+                                            // Limpiamos las respuestas de la evaluación anterior.
+                                            respuestasRegistradas.clear()
+
+                                            // Volvemos a la primera pregunta.
+                                            indiceActual = 0
+
+                                            // Quitamos la alternativa seleccionada.
+                                            opcionSeleccionada = null
+
+                                            // Permitimos guardar una nueva evaluación.
+                                            studentViewModel.reiniciarGuardado()
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(48.dp)
+                                    ) {
+                                        Text("Nueva evaluación")
+                                    }
+                                }
+
                             }
                         }
                     }

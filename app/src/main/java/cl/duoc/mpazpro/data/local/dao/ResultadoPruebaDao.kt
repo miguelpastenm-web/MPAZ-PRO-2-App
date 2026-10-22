@@ -15,6 +15,12 @@ interface ResultadoPruebaDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertar(resultado: ResultadoPruebaEntity)
 
+    // Guarda varios resultados dentro de una misma transacción.
+    // Si alguna inserción falla, Room revierte toda la operación.
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertarTodos(resultados: List<ResultadoPruebaEntity>)
+
+
     @Update
     suspend fun actualizar(resultado: ResultadoPruebaEntity)
 
