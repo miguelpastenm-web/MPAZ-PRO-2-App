@@ -5,6 +5,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 /**
  * ViewModel que gestiona la logica de validacion del formulario docente (IE 2.2.1)
@@ -44,12 +47,24 @@ class TeacherFormViewModel : ViewModel() {
     }
 
     fun validarFecha(fecha: String): String? {
-        val regexFecha = Regex("""^\d{4}-\d{2}-\d{2}$""")
-        return when {
-            fecha.isBlank() -> "La fecha límite de rendición es obligatoria"
-            !regexFecha.matches(fecha.trim()) -> "Debe ingresar una fecha válida en formato AAAA-MM-DD (ej: 2026-11-30)"
-            else -> null
+        if (fecha.isBlank()) {
+            return "La fecha límite de rendición es obligatoria"
         }
+
+        val formato = DateTimeFormatter.ofPattern("uuuu-MM-dd")
+            .withResolverStyle(java.time.format.ResolverStyle.STRICT)
+
+        val fechaIngresada = try {
+            LocalDate.parse(fecha.trim(), formato)
+        } catch (e: DateTimeParseException) {
+            return "Debe ingresar una fecha válida en formato AAAA-MM-DD"
+        }
+
+        if (fechaIngresada.isBefore(LocalDate.now())) {
+            return "La fecha límite no puede ser anterior a hoy"
+        }
+
+        return null
     }
 
     fun validarConfirmacion(confirmado: Boolean): String? {
