@@ -9,17 +9,21 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FormatListNumbered
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.FolderShared
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -139,7 +143,7 @@ fun TeacherFormScreen(
             CustomValidatedField(
                 value = uiState.codigoDocente,
                 onValueChange = { viewModel.onCodigoDocenteChange(it) },
-                label = "Código o Correo Docente (Ficticio)",
+                label = "Código o Correo Institucional",
                 placeholder = "Ej. DOC-102 o docente@marcelapaz.cl",
                 leadingIcon = Icons.Default.Badge,
                 errorMessage = uiState.codigoDocenteError
@@ -165,6 +169,103 @@ fun TeacherFormScreen(
                 leadingIcon = Icons.Default.CalendarToday,
                 errorMessage = uiState.fechaLimiteError
             )
+
+            // 5. Switch: Permitir pistas didácticas (IE 2.1.2)
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                ),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Lightbulb,
+                            contentDescription = null,
+                            tint = if (uiState.permitirPistas) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Permitir pistas pedagógicas",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = if (uiState.permitirPistas) "Pistas y apoyos didácticos activados para 2.° Básico" else "Evaluación estricta sin pistas de apoyo",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Switch(
+                        checked = uiState.permitirPistas,
+                        onCheckedChange = { viewModel.onPermitirPistasChange(it) }
+                    )
+                }
+            }
+
+            // 6. Checkbox: Confirmación obligatoria de parámetros antes de guardar (IE 2.1.2 y IE 2.2.1)
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = if (uiState.confirmarParametrosError != null) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f) else MaterialTheme.colorScheme.surfaceContainerLow
+                ),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = uiState.confirmarParametros,
+                            onCheckedChange = { viewModel.onConfirmarParametrosChange(it) }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Confirmo que los parámetros de evaluación han sido revisados y autorizados para el curso.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    // Mensaje de error visual para el checkbox
+                    AnimatedVisibility(
+                        visible = uiState.confirmarParametrosError != null,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(start = 12.dp, top = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = uiState.confirmarParametrosError ?: "",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+            }
 
             // Feedback visual animado ante guardado exitoso
             AnimatedVisibility(
@@ -231,7 +332,7 @@ fun TeacherFormScreen(
                 ) {
                     Icon(Icons.Default.FolderShared, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Exportar Reportes a Almacenamiento Local")
+                    Text("Generar y Exportar Reportes")
                 }
             }
         }

@@ -64,10 +64,10 @@ object ReportStorageManager {
       "logro": "90%"
     }
   ],
-  "seguridadPersistencia": {
-    "tipoAlmacenamiento": "Almacenamiento Interno Privado (context.filesDir)",
-    "mecanismoSeguridad": "Sandbox UID de Linux con permisos restringidos 700",
-    "permisosPeligrososRequeridos": false
+  "registroInstitucional": {
+    "sistema": "MPAZ PRO 2.0",
+    "tipoReporte": "Informe Oficial de Rendimiento Escolar",
+    "area": "Unidad Técnica Pedagógica (UTP)"
   }
 }""".trimIndent()
     }

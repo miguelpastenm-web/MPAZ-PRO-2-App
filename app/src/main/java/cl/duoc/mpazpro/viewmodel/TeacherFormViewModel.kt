@@ -44,10 +44,16 @@ class TeacherFormViewModel : ViewModel() {
     }
 
     fun validarFecha(fecha: String): String? {
+        val regexFecha = Regex("""^\d{4}-\d{2}-\d{2}$""")
         return when {
             fecha.isBlank() -> "La fecha límite de rendición es obligatoria"
+            !regexFecha.matches(fecha.trim()) -> "Debe ingresar una fecha válida en formato AAAA-MM-DD (ej: 2026-11-30)"
             else -> null
         }
+    }
+
+    fun validarConfirmacion(confirmado: Boolean): String? {
+        return if (!confirmado) "Debe confirmar los parámetros antes de guardar" else null
     }
 
     // --- Manejo de eventos de entrada ---
@@ -102,6 +108,25 @@ class TeacherFormViewModel : ViewModel() {
         }
     }
 
+    fun onPermitirPistasChange(permitir: Boolean) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                permitirPistas = permitir,
+                isSuccess = false
+            )
+        }
+    }
+
+    fun onConfirmarParametrosChange(confirmado: Boolean) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                confirmarParametros = confirmado,
+                confirmarParametrosError = if (currentState.confirmarParametrosError != null) validarConfirmacion(confirmado) else null,
+                isSuccess = false
+            )
+        }
+    }
+
     // --- Accion de Guardado ---
 
     fun validarYGuardar(): Boolean {
@@ -111,8 +136,9 @@ class TeacherFormViewModel : ViewModel() {
         val errCodigo = validarCodigo(actual.codigoDocente)
         val errIntentos = validarIntentos(actual.maxIntentos)
         val errFecha = validarFecha(actual.fechaLimite)
+        val errConfirmacion = validarConfirmacion(actual.confirmarParametros)
 
-        val hayErrores = errNombre != null || errCodigo != null || errIntentos != null || errFecha != null
+        val hayErrores = errNombre != null || errCodigo != null || errIntentos != null || errFecha != null || errConfirmacion != null
 
         _uiState.update { currentState ->
             currentState.copy(
@@ -120,6 +146,7 @@ class TeacherFormViewModel : ViewModel() {
                 codigoDocenteError = errCodigo,
                 maxIntentosError = errIntentos,
                 fechaLimiteError = errFecha,
+                confirmarParametrosError = errConfirmacion,
                 isSuccess = !hayErrores,
                 successMessage = if (!hayErrores) "Parámetros guardados exitosamente para ${actual.asignatura}" else null
             )

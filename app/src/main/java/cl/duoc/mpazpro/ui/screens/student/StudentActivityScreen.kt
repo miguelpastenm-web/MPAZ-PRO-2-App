@@ -14,11 +14,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -329,7 +329,7 @@ fun StudentActivityScreen(
                                 modifier = Modifier.fillMaxWidth().height(48.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.VolumeUp,
+                                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                                     contentDescription = "Escuchar instruccion"
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -569,7 +569,7 @@ fun StudentActivityScreen(
                                 TextButton(onClick = { mostrarPista = !mostrarPista }) {
                                     Text(if (mostrarPista) "Ocultar" else "Ver Pista")
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Icon(Icons.Default.HelpOutline, contentDescription = null)
+                                    Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = null)
                                 }
                             }
 

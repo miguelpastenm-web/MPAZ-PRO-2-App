@@ -10,11 +10,14 @@ data class TeacherFormUiState(
     val maxIntentos: String = "",
     val fechaLimite: String = "",
     val asignatura: String = "Matemática",
+    val permitirPistas: Boolean = true,
+    val confirmarParametros: Boolean = false,
     val nombreDocenteError: String? = null,
     val codigoDocenteError: String? = null,
     val maxIntentosError: String? = null,
     val fechaLimiteError: String? = null,
     val asignaturaError: String? = null,
+    val confirmarParametrosError: String? = null,
     val isSuccess: Boolean = false,
     val successMessage: String? = null
 ) {
@@ -26,8 +29,10 @@ data class TeacherFormUiState(
                 codigoDocente.isNotBlank() &&
                 maxIntentos.isNotBlank() &&
                 fechaLimite.isNotBlank() &&
+                confirmarParametros &&
                 nombreDocenteError == null &&
                 codigoDocenteError == null &&
                 maxIntentosError == null &&
-                fechaLimiteError == null
+                fechaLimiteError == null &&
+                confirmarParametrosError == null
 }

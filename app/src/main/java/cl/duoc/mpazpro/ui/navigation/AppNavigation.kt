@@ -169,7 +169,7 @@ private fun RoleSelectionPlaceholderScreen(
             ) {
                 Icon(Icons.Default.FolderShared, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("Reportes (Almacenamiento Local)", style = MaterialTheme.typography.titleMedium)
+                Text("Reportes de Evaluación", style = MaterialTheme.typography.titleMedium)
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -182,7 +182,7 @@ private fun RoleSelectionPlaceholderScreen(
             ) {
                 Icon(Icons.Default.CameraAlt, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("Perfil (Recurso Cámara)", style = MaterialTheme.typography.titleMedium)
+                Text("Credencial y Perfil Escolar", style = MaterialTheme.typography.titleMedium)
             }
         }
     }

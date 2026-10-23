@@ -126,7 +126,7 @@ fun ProfileCameraScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Perfil y Recurso Cámara") },
+                title = { Text("Credencial y Perfil Escolar") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -167,7 +167,7 @@ fun ProfileCameraScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Recurso Nativo: Cámara (IE 2.4.1)",
+                            text = "Fotografía de Identificación Escolar",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -175,7 +175,7 @@ fun ProfileCameraScreen(
                     }
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "Implementa ActivityResultContracts.RequestPermission() para gestionar el flujo seguro de permisos en runtime según las directrices modernas de Android, renderizando la captura fotográfica directamente en el árbol de composición.",
+                        text = "Permite registrar o actualizar la imagen de la credencial oficial del estudiante o docente, asegurando un registro visual para la ficha escolar.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
@@ -349,12 +349,12 @@ fun ProfileCameraScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
-                        text = "Ajustes de Presentación en Vivo (IE 2.4.2)",
+                        text = "Personalización de la Credencial",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Controla la forma, recorte y dimensiones del recurso fotográfico renderizado:",
+                        text = "Ajusta la forma, encuadre y dimensiones de la fotografía escolar:",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
