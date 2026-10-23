@@ -35,6 +35,7 @@ import cl.duoc.mpazpro.data.local.AppDatabase
 import cl.duoc.mpazpro.data.repository.AppRepository
 import cl.duoc.mpazpro.viewmodel.StudentActivityViewModel
 import cl.duoc.mpazpro.viewmodel.StudentActivityViewModelFactory
+import cl.duoc.mpazpro.data.local.ConfiguracionEvaluacion
 
 
 /**
@@ -71,6 +72,7 @@ fun StudentActivityScreen(
 
     // Obtenemos el contexto para acceder a nuestra base de datos.
     val context = LocalContext.current
+    val permitirPistas = ConfiguracionEvaluacion.obtenerPistas(context)
 
     // Creamos la Factory con una referencia a Room y al
     // repositorio. remember evita recrearla innecesariamente.
@@ -541,6 +543,7 @@ fun StudentActivityScreen(
                     }
 
                     // Animacion 3: animateContentSize en tarjeta expandible de Pista / Explicacion guiada
+                    if (permitirPistas) {
                     Card(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -564,7 +567,7 @@ fun StudentActivityScreen(
                                         text = "Ayuda guiada",
                                         style = MaterialTheme.typography.titleMedium
                                     )
-                                }
+                                }}
 
                                 TextButton(onClick = { mostrarPista = !mostrarPista }) {
                                     Text(if (mostrarPista) "Ocultar" else "Ver Pista")
