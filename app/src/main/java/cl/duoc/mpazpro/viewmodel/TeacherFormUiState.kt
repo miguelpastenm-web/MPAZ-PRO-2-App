@@ -1,7 +1,7 @@
 package cl.duoc.mpazpro.viewmodel
 
 /**
- * Estado inmutable de la interfaz del formulario docente (IE 2.2.1)
+ * Estado inmutable de la interfaz del formulario docente
  * Centraliza los valores y mensajes de error desacoplados de la vista.
  */
 data class TeacherFormUiState(
@@ -22,7 +22,7 @@ data class TeacherFormUiState(
     val successMessage: String? = null
 ) {
     /**
-     * Evalua si todos los campos requeridos son validos (IE 2.2.1)
+     * Evalua si todos los campos requeridos son validos
      */
     val isFormValid: Boolean
         get() = nombreDocente.isNotBlank() &&

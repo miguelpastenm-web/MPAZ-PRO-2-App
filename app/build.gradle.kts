@@ -50,17 +50,17 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     
-    // Iconos extendidos para formularios (IE 2.1.2)
+    // Iconos extendidos para formularios
     implementation(libs.androidx.compose.material.icons.extended)
 
-    // Navegacion (IE 2.1.1)
+    // Navegacion
     implementation(libs.androidx.navigation.compose)
 
-    // Ciclo de vida y ViewModel (IE 2.2.1)
+    // Ciclo de vida y ViewModel
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-    // Persistencia Local Room (IE 2.3.1)
+    // Persistencia Local Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)

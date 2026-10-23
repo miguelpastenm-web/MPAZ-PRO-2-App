@@ -31,7 +31,7 @@ import cl.duoc.mpazpro.ui.components.CustomValidatedField
 import cl.duoc.mpazpro.viewmodel.TeacherFormViewModel
 
 /**
- * Pantalla de Formulario Docente con validacion desacoplada y soporte visual (IE 2.1.2 y IE 2.2.1)
+ * Pantalla de Formulario Docente con validacion desacoplada y soporte visual
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -170,7 +170,7 @@ fun TeacherFormScreen(
                 errorMessage = uiState.fechaLimiteError
             )
 
-            // 5. Switch: Permitir pistas didácticas (IE 2.1.2)
+            // 5. Switch: Permitir pistas didácticas
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -215,7 +215,7 @@ fun TeacherFormScreen(
                 }
             }
 
-            // 6. Checkbox: Confirmación obligatoria de parámetros antes de guardar (IE 2.1.2 y IE 2.2.1)
+            // 6. Checkbox: Confirmación obligatoria de parámetros antes de guardar
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = if (uiState.confirmarParametrosError != null) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f) else MaterialTheme.colorScheme.surfaceContainerLow

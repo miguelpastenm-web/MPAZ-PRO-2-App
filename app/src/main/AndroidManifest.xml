@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-        <!-- Permiso y caracteristica de camara para identificacion de perfil (IE 2.4.1) -->
+        <!-- Permiso y caracteristica de camara para identificacion de perfil -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />

@@ -51,7 +51,7 @@ data class ActividadDidactica(
 )
 
 /**
- * Pantalla de Actividades para Segundo Basico con soporte de accesibilidad y animaciones (IE 2.1.1 y IE 2.2.2)
+ * Pantalla de Actividades para Segundo Basico con soporte de accesibilidad y animaciones
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

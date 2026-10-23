@@ -1,7 +1,7 @@
 package cl.duoc.mpazpro.ui.navigation
 
 /**
- * Rutas selladas para navegacion tipada y desacoplada (IE 2.1.1)
+ * Rutas selladas para navegacion tipada y desacoplada
  */
 sealed class AppScreens(val route: String) {
     data object InicioRol : AppScreens("inicio_rol")

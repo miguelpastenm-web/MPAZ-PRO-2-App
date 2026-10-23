@@ -31,7 +31,7 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Pantalla para la exportacion y validacion de persistencia de reportes en almacenamiento local (IE 2.4.1 y IE 2.4.2)
+ * Pantalla para la exportacion y validacion de persistencia de reportes en almacenamiento local
  *
  * Demuestra:
  * 1. Escritura segura en context.filesDir (Sandbox privado sin permisos peligrosos).
@@ -113,7 +113,7 @@ fun ExportReportScreen(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Tarjeta de Fundamento Tecnico para Defensa (IE 2.4.1)
+            // Tarjeta de Fundamento Tecnico para Defensa
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.tertiaryContainer

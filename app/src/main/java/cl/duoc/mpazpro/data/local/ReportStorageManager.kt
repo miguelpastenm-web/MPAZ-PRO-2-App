@@ -10,7 +10,7 @@ import java.util.Locale
 import org.json.JSONObject
 
 /**
- * Gestor utilitario de almacenamiento interno y exportacion de archivos (IE 2.4.1 y IE 2.4.2)
+ * Gestor utilitario de almacenamiento interno y exportacion de archivos
  *
  * Utiliza context.filesDir para persistencia interna privada bajo el sandbox de Android/Linux
  * sin requerir permisos peligrosos en el manifiesto.

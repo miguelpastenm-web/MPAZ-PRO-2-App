@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
- * Campo de texto reutilizable con soporte nativo de validacion visual (IE 2.1.2)
+ * Campo de texto reutilizable con soporte nativo de validacion visual
  * Incluye icono de advertencia, feedback en color de error y desacoplamiento de logica.
  */
 @Composable

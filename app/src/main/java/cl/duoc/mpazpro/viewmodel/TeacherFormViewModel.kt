@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 /**
- * ViewModel que gestiona la logica de validacion del formulario docente (IE 2.2.1)
+ * ViewModel que gestiona la logica de validacion del formulario docente
  * Centraliza validaciones desacopladas de componentes visuales con StateFlow.
  */
 class TeacherFormViewModel : ViewModel() {

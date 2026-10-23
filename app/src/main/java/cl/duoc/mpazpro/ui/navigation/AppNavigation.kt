@@ -26,7 +26,7 @@ import cl.duoc.mpazpro.ui.screens.admin.TeacherFormScreen
 import cl.duoc.mpazpro.ui.screens.student.StudentActivityScreen
 
 /**
- * Grafo centralizado de navegacion con transiciones fluidas (IE 2.1.1 y IE 2.2.2)
+ * Grafo centralizado de navegacion con transiciones fluidas
  */
 @Composable
 fun AppNavigation(

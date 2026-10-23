@@ -38,7 +38,7 @@ import java.io.FileOutputStream
 import android.graphics.BitmapFactory
 
 /**
- * Pantalla de Perfil con acceso a Camara y gestion de permisos en tiempo de ejecucion (IE 2.4.1 y IE 2.4.2)
+ * Pantalla de Perfil con acceso a Camara y gestion de permisos en tiempo de ejecucion
  *
  * Integra:
  * 1. Solicitud dinamica de permisos en runtime (Manifest.permission.CAMERA).
@@ -79,7 +79,7 @@ fun ProfileCameraScreen(
     var mensajeEstado by remember { mutableStateOf<String?>(null) }
     var esError by remember { mutableStateOf(false) }
 
-    // Parametros dinamicos de presentacion visual (IE 2.4.2)
+    // Parametros dinamicos de presentacion visual
     var usarBordeRedondeado by remember { mutableStateOf(false) }
     var tamanoFotoDp by remember { mutableFloatStateOf(160f) }
     var usarEscalaCrop by remember { mutableStateOf(true) }
@@ -151,7 +151,7 @@ fun ProfileCameraScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Tarjeta de Fundamento Tecnico (IE 2.4.1)
+            // Tarjeta de Fundamento Tecnico
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer
@@ -182,7 +182,7 @@ fun ProfileCameraScreen(
                 }
             }
 
-            // Visualizador del Avatar / Fotografia Renderizada (IE 2.4.2)
+            // Visualizador del Avatar / Fotografia Renderizada
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
@@ -337,7 +337,7 @@ fun ProfileCameraScreen(
                 }
             }
 
-            // Panel de Control para Defensa en Vivo: Ajuste de Presentacion Visual (IE 2.4.2)
+            // Panel de Control para Defensa en Vivo: Ajuste de Presentacion Visual
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
