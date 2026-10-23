@@ -86,11 +86,20 @@ fun ExportReportScreen(
                 asignatura = asignaturaSeleccionada,
                 curso = cursoSeleccionado,
                 resultados = resultados.filter { resultado ->
-                    when (asignaturaSeleccionada) {
-                        "Lenguaje y Comunicación" -> resultado.oaId == 1
-                        "Matemática" -> resultado.oaId == 2
-                        "Ciencias Naturales" -> resultado.oaId == 3
-                        "Historia y Geografía" -> resultado.oaId == 4
+                    when (asignaturaSeleccionada.trim().lowercase()) {
+                        "lenguaje",
+                        "lenguaje y comunicacion",
+                        "lenguaje y comunicación" -> resultado.oaId == 1
+
+                        "matematica",
+                        "matemática" -> resultado.oaId == 2
+
+                        "ciencias naturales" -> resultado.oaId == 3
+
+                        "historia",
+                        "historia y geografia",
+                        "historia y geografía" -> resultado.oaId == 4
+
                         else -> false
                     }
                 }
@@ -211,19 +220,36 @@ fun ExportReportScreen(
                     // Boton 1: Guardado en Almacenamiento Interno Privado (context.filesDir)
                     Button(
                         onClick = {
+                            android.util.Log.d(
+                                "MPAZ_REPORTES",
+                                "Asignatura: '$asignaturaSeleccionada' | " +
+                                        "Total Room: ${resultados.size} | " +
+                                        "OA1: ${resultados.count { it.oaId == 1 }}"
+                            )
                             val contenido = ReportStorageManager.generarContenidoReporte(
                                 docente = nombreDocente,
                                 asignatura = asignaturaSeleccionada,
                                 curso = cursoSeleccionado,
+
                                 resultados = resultados.filter { resultado ->
-                                    when (asignaturaSeleccionada) {
-                                        "Lenguaje y Comunicación" -> resultado.oaId == 1
-                                        "Matemática" -> resultado.oaId == 2
-                                        "Ciencias Naturales" -> resultado.oaId == 3
-                                        "Historia y Geografía" -> resultado.oaId == 4
+                                    when (asignaturaSeleccionada.trim().lowercase()) {
+                                        "lenguaje",
+                                        "lenguaje y comunicacion",
+                                        "lenguaje y comunicación" -> resultado.oaId == 1
+
+                                        "matematica",
+                                        "matemática" -> resultado.oaId == 2
+
+                                        "ciencias naturales" -> resultado.oaId == 3
+
+                                        "historia",
+                                        "historia y geografia",
+                                        "historia y geografía" -> resultado.oaId == 4
+
                                         else -> false
                                     }
                                 }
+
                             )
                             val resultado = ReportStorageManager.guardarEnAlmacenamientoInterno(
                                 context = context,
