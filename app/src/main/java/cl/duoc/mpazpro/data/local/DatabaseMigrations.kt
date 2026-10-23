@@ -1,12 +1,21 @@
+
 package cl.duoc.mpazpro.data.local
 
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/**
+ * Migración de la base de datos desde la versión 1 a la 2.
+ *
+ * Agregamos tres columnas para las respuestas incorrectas
+ * de cada actividad, conservando las preguntas existentes.
+ */
 val MIGRATION_1_2 = object : Migration(1, 2) {
 
     override fun migrate(db: SupportSQLiteDatabase) {
 
+        // Agregamos la primera alternativa incorrecta.
+        // El valor por defecto evita problemas con filas existentes.
         db.execSQL(
             """
             ALTER TABLE actividades
@@ -14,6 +23,7 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
             """.trimIndent()
         )
 
+        // Agregamos la segunda alternativa incorrecta.
         db.execSQL(
             """
             ALTER TABLE actividades
@@ -21,6 +31,7 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
             """.trimIndent()
         )
 
+        // Agregamos la tercera alternativa incorrecta.
         db.execSQL(
             """
             ALTER TABLE actividades
@@ -28,8 +39,11 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
             """.trimIndent()
         )
 
-
-// Completar alternativas de las actividades existentes
+        // Definimos las alternativas incorrectas para las
+        // ocho actividades que ya existían en la base de datos.
+        //
+        // Cada lista contiene la pregunta y sus tres opciones
+        // incorrectas, en ese mismo orden.
         val alternativas = listOf(
             listOf("¿Qué animal ladra?", "Gato", "Vaca", "Pez"),
             listOf("¿Cuál es la primera vocal?", "E", "I", "O"),
@@ -41,18 +55,22 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
             listOf("¿Qué usamos para orientarnos?", "Cuchara", "Pelota", "Lápiz")
         )
 
+        // Recorremos las ocho preguntas y actualizamos
+        // sus alternativas incorrectas en la tabla.
         alternativas.forEach { datos ->
             db.execSQL(
                 """
-        UPDATE actividades
-        SET alternativaIncorrecta1 = ?,
-            alternativaIncorrecta2 = ?,
-            alternativaIncorrecta3 = ?
-        WHERE pregunta = ?
-        """.trimIndent(),
+                UPDATE actividades
+                SET alternativaIncorrecta1 = ?,
+                    alternativaIncorrecta2 = ?,
+                    alternativaIncorrecta3 = ?
+                WHERE pregunta = ?
+                """.trimIndent(),
+
+                // Los signos ? reciben estos valores en orden:
+                // tres alternativas incorrectas y la pregunta.
                 arrayOf(datos[1], datos[2], datos[3], datos[0])
             )
         }
-
     }
 }

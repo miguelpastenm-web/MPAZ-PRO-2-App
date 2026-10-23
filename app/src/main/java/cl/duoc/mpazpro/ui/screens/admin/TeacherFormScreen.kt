@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cl.duoc.mpazpro.ui.components.CustomValidatedField
 import cl.duoc.mpazpro.viewmodel.TeacherFormViewModel
+import androidx.compose.ui.platform.LocalContext
+import cl.duoc.mpazpro.data.local.ConfiguracionEvaluacion
 
 /**
  * Pantalla de Formulario Docente con validacion desacoplada y soporte visual (IE 2.1.2 y IE 2.2.1)
@@ -41,6 +43,7 @@ fun TeacherFormScreen(
     viewModel: TeacherFormViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
 
     val asignaturas = listOf(
@@ -302,7 +305,12 @@ fun TeacherFormScreen(
 
             // Boton Principal de Guardar
             Button(
-                onClick = { viewModel.validarYGuardar() },
+                onClick = { if (viewModel.validarYGuardar()) {
+                    ConfiguracionEvaluacion.guardarPistas(
+                        context,
+                        uiState.permitirPistas
+                    )
+                } },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp)

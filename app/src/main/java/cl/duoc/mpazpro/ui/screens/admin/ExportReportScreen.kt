@@ -29,6 +29,8 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import cl.duoc.mpazpro.data.local.AppDatabase
+import androidx.compose.runtime.collectAsState
 
 /**
  * Pantalla para la exportacion y validacion de persistencia de reportes en almacenamiento local (IE 2.4.1 y IE 2.4.2)
@@ -44,6 +46,16 @@ fun ExportReportScreen(
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
+    // Observamos los resultados reales almacenados en Room.
+    val resultadoDao = remember(context) {
+        AppDatabase.getDatabase(context).resultadoPruebaDao()
+    }
+
+    val resultadosFlow = remember(resultadoDao) {
+        resultadoDao.obtenerTodos()
+    }
+
+    val resultados by resultadosFlow.collectAsState(initial = emptyList())
     val scrollState = rememberScrollState()
 
     var nombreArchivo by remember { mutableStateOf("reporte_marcela_paz_2basico.json") }
@@ -72,7 +84,16 @@ fun ExportReportScreen(
             val contenido = ReportStorageManager.generarContenidoReporte(
                 docente = nombreDocente,
                 asignatura = asignaturaSeleccionada,
-                curso = cursoSeleccionado
+                curso = cursoSeleccionado,
+                resultados = resultados.filter { resultado ->
+                    when (asignaturaSeleccionada) {
+                        "Lenguaje y Comunicación" -> resultado.oaId == 1
+                        "Matemática" -> resultado.oaId == 2
+                        "Ciencias Naturales" -> resultado.oaId == 3
+                        "Historia y Geografía" -> resultado.oaId == 4
+                        else -> false
+                    }
+                }
             )
             val resultado = ReportStorageManager.exportarConSAF(context, uri, contenido)
             if (resultado.isSuccess && resultado.getOrDefault(false)) {
@@ -193,7 +214,16 @@ fun ExportReportScreen(
                             val contenido = ReportStorageManager.generarContenidoReporte(
                                 docente = nombreDocente,
                                 asignatura = asignaturaSeleccionada,
-                                curso = cursoSeleccionado
+                                curso = cursoSeleccionado,
+                                resultados = resultados.filter { resultado ->
+                                    when (asignaturaSeleccionada) {
+                                        "Lenguaje y Comunicación" -> resultado.oaId == 1
+                                        "Matemática" -> resultado.oaId == 2
+                                        "Ciencias Naturales" -> resultado.oaId == 3
+                                        "Historia y Geografía" -> resultado.oaId == 4
+                                        else -> false
+                                    }
+                                }
                             )
                             val resultado = ReportStorageManager.guardarEnAlmacenamientoInterno(
                                 context = context,
