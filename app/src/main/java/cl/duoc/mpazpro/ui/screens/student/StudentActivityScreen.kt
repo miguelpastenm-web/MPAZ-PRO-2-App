@@ -35,10 +35,15 @@ import cl.duoc.mpazpro.data.local.AppDatabase
 import cl.duoc.mpazpro.data.repository.AppRepository
 import cl.duoc.mpazpro.viewmodel.StudentActivityViewModel
 import cl.duoc.mpazpro.viewmodel.StudentActivityViewModelFactory
+import cl.duoc.mpazpro.data.local.ConfiguracionEvaluacion
 
 
 /**
- * Modelo de datos simple para representar una actividad didactica de 2.° Basico
+ * Modelo que adapta las actividades al formato
+ * utilizado por la interfaz del estudiante.
+ *
+ * Contiene la pregunta, sus alternativas, la posición
+ * de la respuesta correcta y el texto de ayuda.
  */
 data class ActividadDidactica(
     val id: Int,
@@ -51,7 +56,13 @@ data class ActividadDidactica(
 )
 
 /**
- * Pantalla de Actividades para Segundo Basico con soporte de accesibilidad y animaciones
+ * Pantalla de actividades para estudiantes de 2.º básico con soporte de accesibilidad y animaciones.
+ *
+ * Muestra las preguntas obtenidas desde Room, permite
+ * seleccionar respuestas y presenta retroalimentación.
+ *
+ * Utiliza un ViewModel para consultar actividades
+ * y guardar los resultados de la evaluación.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,8 +72,10 @@ fun StudentActivityScreen(
 
     // Obtenemos el contexto para acceder a nuestra base de datos.
     val context = LocalContext.current
+    val permitirPistas = ConfiguracionEvaluacion.obtenerPistas(context)
 
-    // Preparamos el repositorio y la Factory una sola vez.
+    // Creamos la Factory con una referencia a Room y al
+    // repositorio. remember evita recrearla innecesariamente.
     val factory = remember(context) {
         val database = AppDatabase.getDatabase(context)
         val repository = AppRepository(database)
@@ -73,8 +86,9 @@ fun StudentActivityScreen(
     val studentViewModel: StudentActivityViewModel = viewModel(
         factory = factory
     )
-
-    // Observamos las actividades y el estado de carga.
+    // Observamos los StateFlow del ViewModel.
+    // La interfaz se actualiza cuando cambian sus valores,
+    // respetando el ciclo de vida de la pantalla.
     val actividadesRoom by studentViewModel.actividades
         .collectAsStateWithLifecycle()
 
@@ -92,8 +106,9 @@ fun StudentActivityScreen(
         .collectAsStateWithLifecycle()
 
 
-    // Convertimos las actividades de Room al formato
-    // que ya utiliza la pantalla del estudiante.
+    // Adaptamos los registros de Room al modelo de la pantalla.
+    // Mezclamos las cuatro alternativas y calculamos la
+    // posición correcta después de cambiar su orden.
     val actividadesConvertidas = remember(actividadesRoom) {
         actividadesRoom.map { actividad ->
 
@@ -163,7 +178,9 @@ fun StudentActivityScreen(
         actividadesConvertidas
     }
 
-
+    // Estados locales de la pantalla.
+    // Controlan la pregunta actual, la alternativa elegida,
+    // la visualización de pistas y la carga simulada.
     var indiceActual by remember { mutableIntStateOf(0) }
     var estaCargando by remember { mutableStateOf(true) }
     var opcionSeleccionada by remember { mutableStateOf<Int?>(null) }
@@ -189,7 +206,9 @@ fun StudentActivityScreen(
 
     val scrollState = rememberScrollState()
 
-    // Simulacion de carga asincrona para evidenciar el CircularProgressIndicator
+    // Mostramos una transición de carga al cambiar de pregunta.
+    // Restablecemos la selección y la pista antes de continuar.
+    // El retraso de 600 ms es visual, no una consulta a Room.
     LaunchedEffect(indiceActual) {
         estaCargando = true
         opcionSeleccionada = null
@@ -524,6 +543,7 @@ fun StudentActivityScreen(
                     }
 
                     // Animacion 3: animateContentSize en tarjeta expandible de Pista / Explicacion guiada
+                    if (permitirPistas) {
                     Card(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -547,7 +567,7 @@ fun StudentActivityScreen(
                                         text = "Ayuda guiada",
                                         style = MaterialTheme.typography.titleMedium
                                     )
-                                }
+                                }}
 
                                 TextButton(onClick = { mostrarPista = !mostrarPista }) {
                                     Text(if (mostrarPista) "Ocultar" else "Ver Pista")

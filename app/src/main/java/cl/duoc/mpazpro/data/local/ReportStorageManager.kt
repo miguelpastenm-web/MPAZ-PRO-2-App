@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import org.json.JSONObject
+import cl.duoc.mpazpro.data.local.entities.ResultadoPruebaEntity
 
 /**
  * Gestor utilitario de almacenamiento interno y exportacion de archivos
@@ -25,51 +26,64 @@ object ReportStorageManager {
     fun generarContenidoReporte(
         docente: String,
         asignatura: String,
-        curso: String = "2.° Básico A"
+        curso: String = "2.° Básico A",
+        resultados: List<ResultadoPruebaEntity> = emptyList()
     ): String {
         val fechaActual = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+        // Calculamos estadísticas a partir de los registros reales.
+        val cantidadRegistros = resultados.size
+
+        val promedioGlobal = if (resultados.isNotEmpty()) {
+            resultados.map { it.puntaje }.average()
+        } else {
+            null
+        }
+
+// Agrupamos los resultados por objetivo de aprendizaje.
+        val promediosPorObjetivo = resultados
+
+            .groupBy { it.oaId }
+            .mapValues { (_, registros) ->
+                registros.map { it.puntaje }.average()
+            }
+        // Generamos los resultados de cada OA en formato JSON.
+        val objetivosJson = resultados
+            .groupBy { it.oaId }
+            .map { (oaId, registros) ->
+                val promedio = registros.map { it.puntaje }.average()
+
+                JSONObject().apply {
+                    put("codigoOA", "OA_$oaId")
+                    put("logro", promedio)
+                    put("cantidadRegistros", registros.size)
+                }
+            }
+
+        val objetivosArray = org.json.JSONArray()
+        objetivosJson.forEach { objetivosArray.put(it) }
+
 
         return """{
   "escuela": "Escuela Escritora Marcela Paz",
   "comuna": "San Bernardo",
   "nivelEducativo": "Segundo Básico",
-  
-  
   "curso": ${JSONObject.quote(curso)},
   "docenteEvaluador": ${JSONObject.quote(docente)},
   "asignatura": ${JSONObject.quote(asignatura)},
   "fechaEmision": ${JSONObject.quote(fechaActual)},
-
-
-   "resumenEvaluacion": {
-    "matriculaTotal": 28,
-    "evaluacionesRendidas": 26,
-    "porcentajeLogroGlobal": 89.2,
-    "estadoPedagogico": "Desempeño Destacado"
+  "resumenEvaluacion": {
+    "cantidadRegistros": $cantidadRegistros,
+    "porcentajeLogroGlobal": ${promedioGlobal ?: "null"},
+    "estadoPedagogico": "Reporte basado en registros disponibles"
   },
-  "objetivosAprendizaje": [
-    {
-      "codigoOA": "OA_09",
-      "nombre": "Resolución de adiciones y sustracciones con apoyo visual",
-      "logro": "92%"
-    },
-    {
-      "codigoOA": "OA_04",
-      "nombre": "Lectura fluida y asociación fonética en rimas",
-      "logro": "86%"
-    },
-    {
-      "codigoOA": "OA_01",
-      "nombre": "Comprensión del ciclo vital de las plantas",
-      "logro": "90%"
-    }
-  ],
+  "objetivosAprendizaje": $objetivosArray,
   "registroInstitucional": {
     "sistema": "MPAZ PRO 2.0",
-    "tipoReporte": "Informe Oficial de Rendimiento Escolar",
+    "tipoReporte": "Reporte de Rendimiento Escolar",
     "area": "Unidad Técnica Pedagógica (UTP)"
   }
 }""".trimIndent()
+
     }
 
     /**
