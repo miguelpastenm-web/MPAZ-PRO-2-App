@@ -142,6 +142,57 @@ class TeacherFormViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Carga en el formulario los parámetros previamente guardados para la asignatura seleccionada
+     */
+    fun cargarConfiguracionPrevia(
+        nombre: String,
+        codigo: String,
+        intentos: String,
+        fecha: String,
+        pistas: Boolean
+    ) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                nombreDocente = nombre,
+                codigoDocente = codigo,
+                maxIntentos = intentos,
+                fechaLimite = fecha,
+                permitirPistas = pistas,
+                confirmarParametros = true,
+                nombreDocenteError = null,
+                codigoDocenteError = null,
+                maxIntentosError = null,
+                fechaLimiteError = null,
+                confirmarParametrosError = null,
+                isSuccess = false
+            )
+        }
+    }
+
+    /**
+     * Carga datos de ejemplo pedagógico estándar para agilizar pruebas y demostraciones en vivo.
+     */
+    fun cargarDatosDemo() {
+        val fechaSugerida = LocalDate.now().plusDays(30).toString()
+        _uiState.update { currentState ->
+            currentState.copy(
+                nombreDocente = "Prof. Marcela Paz",
+                codigoDocente = "DOC-102",
+                maxIntentos = "3",
+                fechaLimite = fechaSugerida,
+                permitirPistas = true,
+                confirmarParametros = true,
+                nombreDocenteError = null,
+                codigoDocenteError = null,
+                maxIntentosError = null,
+                fechaLimiteError = null,
+                confirmarParametrosError = null,
+                isSuccess = false
+            )
+        }
+    }
+
     // --- Accion de Guardado ---
 
     fun validarYGuardar(): Boolean {

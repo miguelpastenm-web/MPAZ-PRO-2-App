@@ -27,10 +27,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.app.DatePickerDialog
+import java.util.Calendar
+import androidx.compose.material.icons.filled.AutoFixHigh
+import androidx.compose.material.icons.filled.Event
 import cl.duoc.mpazpro.ui.components.CustomValidatedField
 import cl.duoc.mpazpro.viewmodel.TeacherFormViewModel
 import androidx.compose.ui.platform.LocalContext
+import cl.duoc.mpazpro.data.local.AppDatabase
 import cl.duoc.mpazpro.data.local.ConfiguracionEvaluacion
+import cl.duoc.mpazpro.data.local.EvaluacionConfig
+import cl.duoc.mpazpro.data.local.entities.DocenteEntity
+import cl.duoc.mpazpro.data.repository.AppRepository
+import kotlinx.coroutines.launch
 
 /**
  * Pantalla de Formulario Docente con validacion desacoplada y soporte visual
@@ -45,6 +54,25 @@ fun TeacherFormScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+    val repository = remember(context) {
+        AppRepository(AppDatabase.getDatabase(context))
+    }
+
+    // Selector interactivo de fecha nativo de Android
+    val calendario = remember { Calendar.getInstance() }
+    val datePickerDialog = remember(context) {
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                val fechaFormateada = String.format("%04d-%02d-%02d", year, month + 1, dayOfMonth)
+                viewModel.onFechaLimiteChange(fechaFormateada)
+            },
+            calendario.get(Calendar.YEAR),
+            calendario.get(Calendar.MONTH),
+            calendario.get(Calendar.DAY_OF_MONTH)
+        )
+    }
 
     val asignaturas = listOf(
         "Matemática",
@@ -52,6 +80,32 @@ fun TeacherFormScreen(
         "Ciencias Naturales",
         "Historia y Geografía"
     )
+
+    fun seleccionarAsignatura(materia: String) {
+        viewModel.onAsignaturaChange(materia)
+        ConfiguracionEvaluacion.obtenerParametros(context, materia)?.let { guardada ->
+            viewModel.cargarConfiguracionPrevia(
+                nombre = guardada.docente,
+                codigo = guardada.codigoDocente,
+                intentos = guardada.maxIntentos.toString(),
+                fecha = guardada.fechaLimite,
+                pistas = guardada.permitirPistas
+            )
+        }
+    }
+
+    // Al iniciar, si ya hay una evaluación guardada para la asignatura seleccionada, cargarla
+    LaunchedEffect(Unit) {
+        ConfiguracionEvaluacion.obtenerParametros(context, uiState.asignatura)?.let { guardada ->
+            viewModel.cargarConfiguracionPrevia(
+                nombre = guardada.docente,
+                codigo = guardada.codigoDocente,
+                intentos = guardada.maxIntentos.toString(),
+                fecha = guardada.fechaLimite,
+                pistas = guardada.permitirPistas
+            )
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -114,7 +168,7 @@ fun TeacherFormScreen(
                 asignaturas.take(2).forEach { asignatura ->
                     FilterChip(
                         selected = uiState.asignatura == asignatura,
-                        onClick = { viewModel.onAsignaturaChange(asignatura) },
+                        onClick = { seleccionarAsignatura(asignatura) },
                         label = { Text(asignatura, style = MaterialTheme.typography.bodySmall) }
                     )
                 }
@@ -126,7 +180,7 @@ fun TeacherFormScreen(
                 asignaturas.drop(2).forEach { asignatura ->
                     FilterChip(
                         selected = uiState.asignatura == asignatura,
-                        onClick = { viewModel.onAsignaturaChange(asignatura) },
+                        onClick = { seleccionarAsignatura(asignatura) },
                         label = { Text(asignatura, style = MaterialTheme.typography.bodySmall) }
                     )
                 }
@@ -163,13 +217,22 @@ fun TeacherFormScreen(
                 errorMessage = uiState.maxIntentosError
             )
 
-            // 4. Campo Fecha Limite
+            // 4. Campo Fecha Limite (con selector interactivo de calendario)
             CustomValidatedField(
                 value = uiState.fechaLimite,
                 onValueChange = { viewModel.onFechaLimiteChange(it) },
                 label = "Fecha Límite de Rendición",
                 placeholder = "AAAA-MM-DD (Ej. 2026-11-30)",
                 leadingIcon = Icons.Default.CalendarToday,
+                trailingCustomIcon = {
+                    IconButton(onClick = { datePickerDialog.show() }) {
+                        Icon(
+                            imageVector = Icons.Default.Event,
+                            contentDescription = "Seleccionar fecha en calendario",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
                 errorMessage = uiState.fechaLimiteError
             )
 
@@ -305,12 +368,30 @@ fun TeacherFormScreen(
 
             // Boton Principal de Guardar
             Button(
-                onClick = { if (viewModel.validarYGuardar()) {
-                    ConfiguracionEvaluacion.guardarPistas(
-                        context,
-                        uiState.permitirPistas
-                    )
-                } },
+                onClick = {
+                    if (viewModel.validarYGuardar()) {
+                        val config = EvaluacionConfig(
+                            asignatura = uiState.asignatura,
+                            docente = uiState.nombreDocente,
+                            codigoDocente = uiState.codigoDocente,
+                            maxIntentos = uiState.maxIntentos.toIntOrNull() ?: 1,
+                            fechaLimite = uiState.fechaLimite,
+                            permitirPistas = uiState.permitirPistas
+                        )
+                        ConfiguracionEvaluacion.guardarParametros(context, config)
+
+                        // Persistencia activa en Room (Tabla docentes)
+                        coroutineScope.launch {
+                            repository.insertarDocente(
+                                DocenteEntity(
+                                    nombre = uiState.nombreDocente,
+                                    correoFicticio = uiState.codigoDocente,
+                                    asignatura = uiState.asignatura
+                                )
+                            )
+                        }
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp)
@@ -320,14 +401,34 @@ fun TeacherFormScreen(
                 Text("Guardar Parámetros de Evaluación", style = MaterialTheme.typography.titleMedium)
             }
 
-            // Boton Secundario de Limpiar
-            OutlinedButton(
-                onClick = { viewModel.limpiarFormulario() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
+            // Acciones secundarias: Cargar datos demo rápidos y limpiar formulario
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text("Limpiar Formulario")
+                OutlinedButton(
+                    onClick = { viewModel.cargarDatosDemo() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AutoFixHigh,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Cargar Demo", style = MaterialTheme.typography.bodyMedium)
+                }
+
+                OutlinedButton(
+                    onClick = { viewModel.limpiarFormulario() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                ) {
+                    Text("Limpiar", style = MaterialTheme.typography.bodyMedium)
+                }
             }
 
             if (onNavigateToExport != null) {

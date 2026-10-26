@@ -8,6 +8,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,12 +26,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cl.duoc.mpazpro.data.local.ReportStorageManager
+import cl.duoc.mpazpro.data.local.ConfiguracionEvaluacion
+import cl.duoc.mpazpro.data.local.AppDatabase
+import cl.duoc.mpazpro.data.local.entities.ResultadoPruebaEntity
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import cl.duoc.mpazpro.data.local.AppDatabase
-import androidx.compose.runtime.collectAsState
+
+data class AsignaturaOpcion(
+    val nombre: String,
+    val oaId: Int,
+    val codigoMineduc: String,
+    val slug: String
+)
+
+val asignaturasDisponibles = listOf(
+    AsignaturaOpcion("Matemática", 2, "MAT-F01", "matematica"),
+    AsignaturaOpcion("Lenguaje y Comunicación", 1, "LEN-F01", "lenguaje"),
+    AsignaturaOpcion("Ciencias Naturales", 3, "CIE-F01", "ciencias"),
+    AsignaturaOpcion("Historia y Geografía", 4, "HIS-F01", "historia")
+)
 
 /**
  * Pantalla para la exportacion y validacion de persistencia de reportes en almacenamiento local
@@ -46,22 +63,49 @@ fun ExportReportScreen(
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
-    // Observamos los resultados reales almacenados en Room.
-    val resultadoDao = remember(context) {
-        AppDatabase.getDatabase(context).resultadoPruebaDao()
-    }
+    val coroutineScope = rememberCoroutineScope()
 
-    val resultadosFlow = remember(resultadoDao) {
-        resultadoDao.obtenerTodos()
-    }
+    val database = remember(context) { AppDatabase.getDatabase(context) }
+    val resultadoDao = remember(database) { database.resultadoPruebaDao() }
+    val actividadDao = remember(database) { database.actividadDao() }
+    val objetivoDao = remember(database) { database.objetivoAprendizajeDao() }
 
-    val resultados by resultadosFlow.collectAsState(initial = emptyList())
+    val resultados by resultadoDao.obtenerTodos().collectAsState(initial = emptyList())
+    val actividades by actividadDao.obtenerTodas().collectAsState(initial = emptyList())
+    val objetivos by objetivoDao.obtenerTodos().collectAsState(initial = emptyList())
+
     val scrollState = rememberScrollState()
+    val chipsScrollState = rememberScrollState()
 
-    var nombreArchivo by remember { mutableStateOf("reporte_marcela_paz_2basico.json") }
-    var nombreDocente by remember { mutableStateOf("Marcela Paz") }
-    var asignaturaSeleccionada by remember { mutableStateOf("Matemática") }
+    var asignaturaSeleccionada by remember { mutableStateOf(asignaturasDisponibles[0]) }
+    var nombreArchivo by remember { mutableStateOf("reporte_2basico_${asignaturasDisponibles[0].slug}.json") }
+    var nombreDocente by remember {
+        val cfg = ConfiguracionEvaluacion.obtenerParametros(context, asignaturasDisponibles[0].nombre)
+        mutableStateOf(cfg?.docente ?: "Marcela Paz")
+    }
     var cursoSeleccionado by remember { mutableStateOf("2.° Básico A") }
+
+    fun seleccionarAsignatura(opcion: AsignaturaOpcion) {
+        asignaturaSeleccionada = opcion
+        val config = ConfiguracionEvaluacion.obtenerParametros(context, opcion.nombre)
+        if (config != null && config.docente.isNotBlank()) {
+            nombreDocente = config.docente
+        }
+        nombreArchivo = "reporte_2basico_${opcion.slug}.json"
+    }
+
+    val resultadosMateria = remember(resultados, asignaturaSeleccionada) {
+        resultados.filter { it.oaId == asignaturaSeleccionada.oaId }
+    }
+    val actividadesMateria = remember(actividades, asignaturaSeleccionada) {
+        actividades.filter { it.oaId == asignaturaSeleccionada.oaId }
+    }
+    val objetivoMateria = remember(objetivos, asignaturaSeleccionada) {
+        objetivos.firstOrNull { it.id == asignaturaSeleccionada.oaId }
+    }
+    val configMateria = remember(context, asignaturaSeleccionada, nombreDocente) {
+        ConfiguracionEvaluacion.obtenerParametros(context, asignaturaSeleccionada.nombre)
+    }
 
     var mensajeResultado by remember { mutableStateOf<String?>(null) }
     var esError by remember { mutableStateOf(false) }
@@ -76,34 +120,25 @@ fun ExportReportScreen(
         listaArchivos = ReportStorageManager.listarArchivosReporte(context)
     }
 
+    fun generarReporteActual(): String {
+        return ReportStorageManager.generarContenidoReporte(
+            docente = nombreDocente,
+            asignatura = asignaturaSeleccionada.nombre,
+            curso = cursoSeleccionado,
+            resultados = resultadosMateria,
+            oaId = asignaturaSeleccionada.oaId,
+            oaEntity = objetivoMateria,
+            actividades = actividadesMateria,
+            config = configMateria
+        )
+    }
+
     // Launcher de SAF para guardar en ubicacion externa seleccionada por el usuario
     val safLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri: Uri? ->
         if (uri != null) {
-            val contenido = ReportStorageManager.generarContenidoReporte(
-                docente = nombreDocente,
-                asignatura = asignaturaSeleccionada,
-                curso = cursoSeleccionado,
-                resultados = resultados.filter { resultado ->
-                    when (asignaturaSeleccionada.trim().lowercase()) {
-                        "lenguaje",
-                        "lenguaje y comunicacion",
-                        "lenguaje y comunicación" -> resultado.oaId == 1
-
-                        "matematica",
-                        "matemática" -> resultado.oaId == 2
-
-                        "ciencias naturales" -> resultado.oaId == 3
-
-                        "historia",
-                        "historia y geografia",
-                        "historia y geografía" -> resultado.oaId == 4
-
-                        else -> false
-                    }
-                }
-            )
+            val contenido = generarReporteActual()
             val resultado = ReportStorageManager.exportarConSAF(context, uri, contenido)
             if (resultado.isSuccess && resultado.getOrDefault(false)) {
                 mensajeResultado = "Reporte exportado exitosamente mediante Storage Access Framework."
@@ -174,6 +209,149 @@ fun ExportReportScreen(
                 }
             }
 
+            // Selector interactivo de Asignatura con FilterChips
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "Seleccionar Asignatura para Reporte",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(chipsScrollState),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        asignaturasDisponibles.forEach { opcion ->
+                            val esSeleccionada = asignaturaSeleccionada.oaId == opcion.oaId
+                            FilterChip(
+                                selected = esSeleccionada,
+                                onClick = { seleccionarAsignatura(opcion) },
+                                label = { Text(opcion.nombre) },
+                                leadingIcon = if (esSeleccionada) {
+                                    {
+                                        Icon(
+                                            Icons.Default.Check,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                } else null
+                            )
+                        }
+                    }
+
+                    // Tarjeta Informativa de la Materia Seleccionada
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Badge(containerColor = MaterialTheme.colorScheme.primary) {
+                                    Text(
+                                        text = "${asignaturaSeleccionada.codigoMineduc} - 2.° Básico",
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
+                                Text(
+                                    text = "${resultadosMateria.size} evaluaciones en BD",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
+
+                            Text(
+                                text = objetivoMateria?.descripcion ?: "Objetivo curricular de 2.° Básico",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Docente: ${configMateria?.docente ?: nombreDocente}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                                Text(
+                                    text = "Límite: ${configMateria?.fechaLimite?.ifEmpty { "30/11/2026" } ?: "30/11/2026"}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
+                        }
+                    }
+
+                    // Botón para generar evaluaciones de prueba si no hay datos en la materia seleccionada
+                    if (resultadosMateria.isEmpty()) {
+                        OutlinedButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    val now = System.currentTimeMillis()
+                                    val demoResultados = listOf(
+                                        ResultadoPruebaEntity(
+                                            estudianteFicticioId = 1,
+                                            oaId = asignaturaSeleccionada.oaId,
+                                            puntaje = 100,
+                                            intentosUsados = 2,
+                                            fechaRegistro = now - 3600000L
+                                        ),
+                                        ResultadoPruebaEntity(
+                                            estudianteFicticioId = 2,
+                                            oaId = asignaturaSeleccionada.oaId,
+                                            puntaje = 75,
+                                            intentosUsados = 2,
+                                            fechaRegistro = now - 1800000L
+                                        ),
+                                        ResultadoPruebaEntity(
+                                            estudianteFicticioId = 3,
+                                            oaId = asignaturaSeleccionada.oaId,
+                                            puntaje = 88,
+                                            intentosUsados = 2,
+                                            fechaRegistro = now
+                                        )
+                                    )
+                                    resultadoDao.insertarTodos(demoResultados)
+                                    mensajeResultado = "Se registraron 3 evaluaciones válidas de demostración para ${asignaturaSeleccionada.nombre}."
+                                    esError = false
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.AddChart, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Generar Evaluaciones Demo para ${asignaturaSeleccionada.nombre}")
+                        }
+                    }
+                }
+            }
+
             // Formulario de Parametros del Reporte
             Card(
                 colors = CardDefaults.cardColors(
@@ -195,7 +373,7 @@ fun ExportReportScreen(
                         value = nombreArchivo,
                         onValueChange = { nombreArchivo = it },
                         label = { Text("Nombre del Archivo") },
-                        leadingIcon = { Icon(Icons.Default.InsertDriveFile, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) },
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -208,9 +386,10 @@ fun ExportReportScreen(
                     )
 
                     OutlinedTextField(
-                        value = asignaturaSeleccionada,
-                        onValueChange = { asignaturaSeleccionada = it },
-                        label = { Text("Asignatura") },
+                        value = asignaturaSeleccionada.nombre,
+                        onValueChange = { },
+                        readOnly = true,
+                        label = { Text("Asignatura Activa") },
                         leadingIcon = { Icon(Icons.Default.Book, contentDescription = null) },
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -220,37 +399,7 @@ fun ExportReportScreen(
                     // Boton 1: Guardado en Almacenamiento Interno Privado (context.filesDir)
                     Button(
                         onClick = {
-                            android.util.Log.d(
-                                "MPAZ_REPORTES",
-                                "Asignatura: '$asignaturaSeleccionada' | " +
-                                        "Total Room: ${resultados.size} | " +
-                                        "OA1: ${resultados.count { it.oaId == 1 }}"
-                            )
-                            val contenido = ReportStorageManager.generarContenidoReporte(
-                                docente = nombreDocente,
-                                asignatura = asignaturaSeleccionada,
-                                curso = cursoSeleccionado,
-
-                                resultados = resultados.filter { resultado ->
-                                    when (asignaturaSeleccionada.trim().lowercase()) {
-                                        "lenguaje",
-                                        "lenguaje y comunicacion",
-                                        "lenguaje y comunicación" -> resultado.oaId == 1
-
-                                        "matematica",
-                                        "matemática" -> resultado.oaId == 2
-
-                                        "ciencias naturales" -> resultado.oaId == 3
-
-                                        "historia",
-                                        "historia y geografia",
-                                        "historia y geografía" -> resultado.oaId == 4
-
-                                        else -> false
-                                    }
-                                }
-
-                            )
+                            val contenido = generarReporteActual()
                             val resultado = ReportStorageManager.guardarEnAlmacenamientoInterno(
                                 context = context,
                                 nombreArchivo = nombreArchivo,
@@ -258,7 +407,7 @@ fun ExportReportScreen(
                             )
                             if (resultado.isSuccess) {
                                 val archivo = resultado.getOrThrow()
-                                mensajeResultado = "Reporte guardado con éxito en el almacenamiento interno privado."
+                                mensajeResultado = "Reporte de ${asignaturaSeleccionada.nombre} guardado con éxito en memoria interna privada."
                                 esError = false
                                 rutaFisicaReciente = archivo.absolutePath
                                 actualizarArchivos()

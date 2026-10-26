@@ -67,12 +67,26 @@ data class ActividadDidactica(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentActivityScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    oaId: Int = -1
 ) {
 
     // Obtenemos el contexto para acceder a nuestra base de datos.
     val context = LocalContext.current
-    val permitirPistas = ConfiguracionEvaluacion.obtenerPistas(context)
+    val asignaturaSeleccionada = if (oaId > 0) {
+        when (oaId) {
+            1 -> "Lenguaje y Comunicación"
+            2 -> "Matemática"
+            3 -> "Ciencias Naturales"
+            4 -> "Historia y Geografía"
+            else -> ""
+        }
+    } else ""
+    val permitirPistas = if (asignaturaSeleccionada.isNotEmpty()) {
+        ConfiguracionEvaluacion.obtenerPistasPorMateria(context, asignaturaSeleccionada)
+    } else {
+        ConfiguracionEvaluacion.obtenerPistas(context)
+    }
 
     // Creamos la Factory con una referencia a Room y al
     // repositorio. remember evita recrearla innecesariamente.
@@ -86,6 +100,11 @@ fun StudentActivityScreen(
     val studentViewModel: StudentActivityViewModel = viewModel(
         factory = factory
     )
+
+    // Si se pasa un oaId específico (> 0), recarga solo las actividades de esa materia
+    LaunchedEffect(oaId) {
+        studentViewModel.cargarActividades(if (oaId > 0) oaId else null)
+    }
     // Observamos los StateFlow del ViewModel.
     // La interfaz se actualiza cuando cambian sus valores,
     // respetando el ciclo de vida de la pantalla.
@@ -299,6 +318,29 @@ fun StudentActivityScreen(
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+
+                    // Información del docente y fecha límite configurada (sin emojis)
+                    val configMateria = remember(actividadActual.asignatura) {
+                        ConfiguracionEvaluacion.obtenerParametros(context, actividadActual.asignatura)
+                    }
+                    if (configMateria != null) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Docente: ${configMateria.docente}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "Límite: ${configMateria.fechaLimite}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
 
                     // Tarjeta Principal de la Pregunta (Tipografia grande para lectores iniciales)

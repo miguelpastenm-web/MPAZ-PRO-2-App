@@ -9,6 +9,7 @@ import cl.duoc.mpazpro.data.repository.AppRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /**
@@ -56,32 +57,35 @@ class StudentActivityViewModel(
     val resultadosGuardados: StateFlow<Boolean> =
         _resultadosGuardados.asStateFlow()
 
-    // Cargamos las actividades al crear el ViewModel.
-    init {
-        cargarActividades()
-    }
+    private var jobCarga: Job? = null
 
     /**
      * Consulta las actividades mediante el repositorio.
-     *
-     * Utilizamos Flow para recibir los cambios de Room
-     * y actualizar la lista que observa la pantalla.
+     * Si se proporciona un oaId válido (> 0), filtra solo las actividades de esa materia desde Room.
+     * De lo contrario, consulta todas las actividades disponibles.
      */
-    fun cargarActividades() {
-        viewModelScope.launch {
+    fun cargarActividades(oaId: Int? = null) {
+        jobCarga?.cancel()
+        jobCarga = viewModelScope.launch {
             _estaCargando.value = true
             _mensajeError.value = null
 
             try {
-                repository.obtenerActividades().collect { lista ->
+                val flow = if (oaId != null && oaId > 0) {
+                    repository.obtenerActividadesPorObjetivo(oaId)
+                } else {
+                    repository.obtenerActividades()
+                }
+                flow.collect { lista ->
                     _actividades.value = lista
                     _estaCargando.value = false
                 }
             } catch (e: Exception) {
-                _mensajeError.value =
-                    "No se pudieron cargar las actividades."
-
-                _estaCargando.value = false
+                if (e !is kotlinx.coroutines.CancellationException) {
+                    _mensajeError.value =
+                        "No se pudieron cargar las actividades."
+                    _estaCargando.value = false
+                }
             }
         }
     }

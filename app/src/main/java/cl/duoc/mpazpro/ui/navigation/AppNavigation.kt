@@ -17,13 +17,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import cl.duoc.mpazpro.ui.screens.admin.ExportReportScreen
 import cl.duoc.mpazpro.ui.screens.profile.ProfileCameraScreen
 import cl.duoc.mpazpro.ui.screens.admin.TeacherFormScreen
 import cl.duoc.mpazpro.ui.screens.student.StudentActivityScreen
+import cl.duoc.mpazpro.ui.screens.student.StudentHomeScreen
 
 /**
  * Grafo centralizado de navegacion con transiciones fluidas
@@ -65,9 +68,17 @@ fun AppNavigation(
         composable(AppScreens.InicioRol.route) {
             RoleSelectionPlaceholderScreen(
                 onNavigateToTeacher = { navController.navigate(AppScreens.FormularioDocente.route) },
-                onNavigateToStudent = { navController.navigate(AppScreens.ActividadesEstudiante.route) },
+                onNavigateToStudent = { navController.navigate(AppScreens.HomeEstudiante.route) },
                 onNavigateToExport = { navController.navigate(AppScreens.ExportarReporte.route) },
                 onNavigateToProfile = { navController.navigate(AppScreens.PerfilCamara.route) }
+            )
+        }
+        composable(AppScreens.HomeEstudiante.route) {
+            StudentHomeScreen(
+                onBack = { navController.popBackStack() },
+                onSelectMateria = { oaId ->
+                    navController.navigate(AppScreens.ActividadesEstudiante.createRoute(oaId))
+                }
             )
         }
         composable(AppScreens.FormularioDocente.route) {
@@ -76,9 +87,19 @@ fun AppNavigation(
                 onNavigateToExport = { navController.navigate(AppScreens.ExportarReporte.route) }
             )
         }
-        composable(AppScreens.ActividadesEstudiante.route) {
+        composable(
+            route = AppScreens.ActividadesEstudiante.route,
+            arguments = listOf(
+                navArgument("oaId") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                }
+            )
+        ) { backStackEntry ->
+            val oaId = backStackEntry.arguments?.getInt("oaId") ?: -1
             StudentActivityScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                oaId = oaId
             )
         }
         composable(AppScreens.ExportarReporte.route) {
