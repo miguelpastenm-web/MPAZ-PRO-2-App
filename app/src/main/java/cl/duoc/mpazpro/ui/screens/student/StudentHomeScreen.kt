@@ -28,8 +28,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import android.graphics.BitmapFactory
+import java.io.File
 import cl.duoc.mpazpro.data.local.ConfiguracionEvaluacion
 import cl.duoc.mpazpro.data.local.EvaluacionConfig
+import cl.duoc.mpazpro.data.local.PerfilEstudianteManager
 
 /**
  * Modelo de datos inmutable para representar una materia escolar.
@@ -119,6 +127,19 @@ fun StudentHomeScreen(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            val nombreCompleto = remember(context) {
+                PerfilEstudianteManager.obtenerNombreCompleto(context)
+            }
+            val cursoEstudiante = remember(context) {
+                PerfilEstudianteManager.obtenerCurso(context)
+            }
+            val avatarBitmap = remember(context) {
+                runCatching {
+                    val file = File(context.filesDir, "avatar_perfil.png")
+                    if (file.exists()) BitmapFactory.decodeFile(file.absolutePath) else null
+                }.getOrNull()
+            }
+
             // Tarjeta de Bienvenida y Motivación Pedagógica
             Card(
                 colors = CardDefaults.cardColors(
@@ -131,23 +152,40 @@ fun StudentHomeScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.School,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(40.dp)
-                    )
+                    if (avatarBitmap != null) {
+                        Image(
+                            bitmap = avatarBitmap.asImageBitmap(),
+                            contentDescription = "Avatar de $nombreCompleto",
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.School,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(44.dp)
+                        )
+                    }
                     Spacer(modifier = Modifier.width(14.dp))
                     Column {
                         Text(
-                            text = "¡Hola, Estudiante!",
+                            text = "¡Hola, $nombreCompleto!",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Selecciona una materia para practicar tus desafíos de 2.º Básico:",
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = "$cursoEstudiante - Escuela Marcela Paz",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Selecciona una materia para practicar tus desafíos:",
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

@@ -84,8 +84,9 @@ fun ProfileCameraScreen(
     var tamanoFotoDp by remember { mutableFloatStateOf(160f) }
     var usarEscalaCrop by remember { mutableStateOf(true) }
 
-    var nombreEstudiante by remember { mutableStateOf("Matías Sepúlveda") }
-    var cursoEstudiante by remember { mutableStateOf("2.° Básico B") }
+    var nombreEstudiante by remember { mutableStateOf(cl.duoc.mpazpro.data.local.PerfilEstudianteManager.obtenerNombre(context)) }
+    var apellidoEstudiante by remember { mutableStateOf(cl.duoc.mpazpro.data.local.PerfilEstudianteManager.obtenerApellido(context)) }
+    var cursoEstudiante by remember { mutableStateOf(cl.duoc.mpazpro.data.local.PerfilEstudianteManager.obtenerCurso(context)) }
 
     // Launcher de captura de imagen (Retorna Bitmap en memoria)
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -236,16 +237,87 @@ fun ProfileCameraScreen(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
+                    val nombreCompleto = "$nombreEstudiante $apellidoEstudiante".trim().ifEmpty { "Estudiante" }
                     Text(
-                        text = nombreEstudiante,
+                        text = nombreCompleto,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = cursoEstudiante + " - Escuela Marcela Paz",
+                        text = "$cursoEstudiante - Escuela Marcela Paz",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            }
+
+            // Formulario de Nombre y Apellido del Estudiante
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "Datos del Estudiante",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Tu nombre aparecerá en la bienvenida y en los reportes escolares.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    OutlinedTextField(
+                        value = nombreEstudiante,
+                        onValueChange = { nombreEstudiante = it },
+                        label = { Text("Nombre") },
+                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = apellidoEstudiante,
+                        onValueChange = { apellidoEstudiante = it },
+                        label = { Text("Apellido") },
+                        leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = cursoEstudiante,
+                        onValueChange = { cursoEstudiante = it },
+                        label = { Text("Curso") },
+                        leadingIcon = { Icon(Icons.Default.School, contentDescription = null) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Button(
+                        onClick = {
+                            cl.duoc.mpazpro.data.local.PerfilEstudianteManager.guardarPerfil(
+                                context = context,
+                                nombre = nombreEstudiante,
+                                apellido = apellidoEstudiante,
+                                curso = cursoEstudiante
+                            )
+                            val completo = "$nombreEstudiante $apellidoEstudiante".trim().ifEmpty { "Estudiante" }
+                            mensajeEstado = "Perfil escolar actualizado correctamente para $completo."
+                            esError = false
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                    ) {
+                        Icon(Icons.Default.Save, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Guardar Datos del Estudiante")
+                    }
                 }
             }
 

@@ -38,4 +38,7 @@ interface ResultadoPruebaDao {
 
     @Query("SELECT * FROM resultados_prueba ORDER BY fechaRegistro DESC")
     fun obtenerHistorial(): Flow<List<ResultadoPruebaEntity>>
+
+    @Query("DELETE FROM resultados_prueba")
+    suspend fun borrarTodos()
 }

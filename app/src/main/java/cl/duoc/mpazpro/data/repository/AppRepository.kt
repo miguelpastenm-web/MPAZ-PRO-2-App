@@ -140,4 +140,8 @@ class AppRepository(
     // Elimina un resultado de la base de datos.
     suspend fun eliminarResultado(resultado: ResultadoPruebaEntity) =
         resultadoDao.eliminar(resultado)
+
+    // Elimina todos los resultados de la base de datos para mantenerla limpia
+    suspend fun borrarTodosLosResultados() =
+        resultadoDao.borrarTodos()
 }

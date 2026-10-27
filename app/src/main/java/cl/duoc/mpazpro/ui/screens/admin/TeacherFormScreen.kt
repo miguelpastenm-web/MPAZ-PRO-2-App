@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.FolderShared
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -401,34 +402,20 @@ fun TeacherFormScreen(
                 Text("Guardar Parámetros de Evaluación", style = MaterialTheme.typography.titleMedium)
             }
 
-            // Acciones secundarias: Cargar datos demo rápidos y limpiar formulario
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            // Acción secundaria: Limpiar formulario
+            OutlinedButton(
+                onClick = { viewModel.limpiarFormulario() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
             ) {
-                OutlinedButton(
-                    onClick = { viewModel.cargarDatosDemo() },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AutoFixHigh,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Cargar Demo", style = MaterialTheme.typography.bodyMedium)
-                }
-
-                OutlinedButton(
-                    onClick = { viewModel.limpiarFormulario() },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                ) {
-                    Text("Limpiar", style = MaterialTheme.typography.bodyMedium)
-                }
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Limpiar Formulario", style = MaterialTheme.typography.bodyMedium)
             }
 
             if (onNavigateToExport != null) {
