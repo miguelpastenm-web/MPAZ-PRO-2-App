@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Forest
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.Info
@@ -25,7 +24,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,13 +32,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
-import android.graphics.BitmapFactory
-import androidx.compose.foundation.background
-import androidx.compose.ui.graphics.Color
-import java.io.File
-import cl.duoc.mpazpro.data.local.preferences.ConfiguracionEvaluacion
-import cl.duoc.mpazpro.data.local.preferences.EvaluacionConfig
-import cl.duoc.mpazpro.data.local.preferences.PerfilEstudianteManager
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import cl.duoc.mpazpro.viewmodel.EvaluacionConfigUi
+import cl.duoc.mpazpro.viewmodel.StudentHomeViewModel
 
 /**
  * Modelo de datos inmutable para representar una materia escolar.
@@ -61,17 +56,20 @@ data class MateriaItem(
  * 1. Presentar de forma amigable y ordenada las 4 asignaturas del currículum.
  * 2. Conectar y reflejar los parámetros de evaluación fijados por el docente (fecha, docente, intentos).
  * 3. Acceder a la credencial y perfil escolar del propio estudiante.
- * 4. Desacoplamiento total: no conoce NavController, solo emite callbacks.
+ * 4. Desacoplamiento total: no conoce NavController ni la capa data/local, solo emite callbacks.
+ *
+ * MVVM: La pantalla solo interactúa con StudentHomeViewModel.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentHomeScreen(
     onBack: () -> Unit,
     onSelectMateria: (Int) -> Unit,
-    onNavigateToProfile: () -> Unit
+    onNavigateToProfile: () -> Unit,
+    homeViewModel: StudentHomeViewModel = viewModel()
 ) {
-    val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
 
     // Las 4 asignaturas oficiales de 2.° Básico según el caso Marcela Paz
     val materias = listOf(
@@ -104,182 +102,121 @@ fun StudentHomeScreen(
             icono = Icons.Default.Public
         )
     )
-// Colores institucionales de MPAZ PRO
-    val azulInstitucional = Color(0xFF102B61)
-    val azulPrincipal = Color(0xFF2258A2)
-    val azulClaro = Color(0xFFDCE6FF)
-    val fondoSuave = Color(0xFFF0F4FF)
 
-    MaterialTheme(
-        colorScheme = MaterialTheme.colorScheme.copy(
-            primary = azulPrincipal,
-            onPrimary = Color.White,
-            primaryContainer = azulClaro,
-            onPrimaryContainer = azulInstitucional,
-            secondary = azulPrincipal,
-            secondaryContainer = azulClaro,
-            onSecondaryContainer = azulInstitucional,
-            background = fondoSuave,
-            onBackground = azulInstitucional,
-            surface = Color.White,
-            onSurface = azulInstitucional,
-            surfaceVariant = azulClaro,
-            surfaceContainerHigh = Color.White,
-            outline = Color(0xFF8798B7)
-        )
-    ) {
-
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Mis Asignaturas") },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Volver al inicio"
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = onNavigateToProfile) {
-                            Icon(
-                                imageVector = Icons.Default.CameraAlt,
-                                contentDescription = "Mi Credencial y Perfil Escolar"
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = azulInstitucional,
-                        titleContentColor = Color.White,
-                        navigationIconContentColor = Color.White,
-                        actionIconContentColor = Color.White
-                    )
-
-                )
-            }
-        ) { paddingValues ->
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .background(fondoSuave)
-                    .verticalScroll(scrollState)
-                    .padding(20.dp),
-
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                val nombreCompleto = remember(context) {
-                    PerfilEstudianteManager.obtenerNombreCompleto(context)
-                }
-                val cursoEstudiante = remember(context) {
-                    PerfilEstudianteManager.obtenerCurso(context)
-                }
-                val avatarBitmap = remember(context) {
-                    runCatching {
-                        val file = File(context.filesDir, "avatar_perfil.png")
-                        if (file.exists()) BitmapFactory.decodeFile(file.absolutePath) else null
-                    }.getOrNull()
-                }
-
-                // Tarjeta de Bienvenida y Motivación Pedagógica (Clickeable para ver/editar perfil)
-                Card(
-                    onClick = onNavigateToProfile,
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (avatarBitmap != null) {
-                            Image(
-                                bitmap = avatarBitmap.asImageBitmap(),
-                                contentDescription = "Avatar de $nombreCompleto",
-                                modifier = Modifier
-                                    .size(50.dp)
-                                    .clip(CircleShape)
-                                    .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.School,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(44.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(14.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "¡Hola, $nombreCompleto!",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = "$cursoEstudiante - Escuela Marcela Paz",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "Selecciona una materia para practicar tus desafíos:",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Mis Asignaturas") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
                         Icon(
-                            imageVector = Icons.Default.CameraAlt,
-                            contentDescription = "Editar credencial",
-                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                            modifier = Modifier.size(22.dp)
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver al inicio"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(scrollState)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Tarjeta de Bienvenida y Motivación Pedagógica
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (uiState.avatarBitmap != null) {
+                        Image(
+                            bitmap = uiState.avatarBitmap!!.asImageBitmap(),
+                            contentDescription = "Avatar de ${uiState.nombreCompleto}",
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.School,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(44.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(14.dp))
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "¡Hola, ${uiState.nombreCompleto}!",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "${uiState.curso} - Escuela Marcela Paz",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Selecciona una materia para practicar tus desafíos:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-
-                // Listado de Tarjetas por Materia (conectadas a la configuración docente)
-                materias.forEach { materia ->
-                    val config = remember(materia.nombre) {
-                        ConfiguracionEvaluacion.obtenerParametros(context, materia.nombre)
-                    }
-
-                    MateriaCard(
-                        materia = materia,
-                        config = config,
-                        onClick = { onSelectMateria(materia.oaId) }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Botón en la sección del Estudiante para gestionar su Credencial Escolar
-                OutlinedButton(
-                    onClick = onNavigateToProfile,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CameraAlt,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = "Mi Credencial y Perfil Escolar",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
             }
+
+            // Listado de Tarjetas por Materia (conectadas a la configuración docente via ViewModel)
+            materias.forEach { materia ->
+                val config = homeViewModel.obtenerConfiguracion(materia.nombre)
+
+                MateriaCard(
+                    materia = materia,
+                    config = config,
+                    onClick = { onSelectMateria(materia.oaId) }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Botón en la sección del Estudiante para gestionar su Credencial Escolar
+            OutlinedButton(
+                onClick = onNavigateToProfile,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CameraAlt,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "Mi Credencial y Perfil Escolar",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -294,19 +231,14 @@ fun StudentHomeScreen(
 @Composable
 private fun MateriaCard(
     materia: MateriaItem,
-    config: EvaluacionConfig?,
+    config: EvaluacionConfigUi?,
     onClick: () -> Unit
 ) {
-
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 3.dp
-        ),
-
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize()

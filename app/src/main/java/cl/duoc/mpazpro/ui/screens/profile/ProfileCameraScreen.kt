@@ -28,47 +28,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import cl.duoc.mpazpro.data.local.preferences.PerfilEstudianteManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import java.io.File
-import java.io.FileOutputStream
-import android.graphics.BitmapFactory
-import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import cl.duoc.mpazpro.viewmodel.ProfileViewModel
 
 /**
- * Pantalla de Perfil con acceso a Camara y gestion de permisos en tiempo de ejecucion
+ * Pantalla de Perfil con acceso a Cámara y gestión de permisos en tiempo de ejecución.
  *
  * Integra:
- * 1. Solicitud dinamica de permisos en runtime (Manifest.permission.CAMERA).
+ * 1. Solicitud dinámica de permisos en runtime (Manifest.permission.CAMERA).
  * 2. Captura nativa mediante ActivityResultContracts.TakePicturePreview().
- * 3. Renderizado y manipulacion en tiempo real de la presentacion visual (bordes y tamano).
+ * 3. Renderizado y manipulación en tiempo real de la presentación visual (bordes y tamaño).
+ *
+ * MVVM / Arquitectura Limpia:
+ * La pantalla no interactúa directamente con la capa de datos (SharedPreferences o archivos en disco).
+ * Toda la persistencia y lectura de estado se delegan a [ProfileViewModel].
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileCameraScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    viewModel: ProfileViewModel = viewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-
-    var fotoBitmap by remember {
-        mutableStateOf<Bitmap?>(
-            runCatching {
-                val archivoFoto = File(context.filesDir, "avatar_perfil.png")
-
-                if (archivoFoto.exists()) {
-                    BitmapFactory.decodeFile(archivoFoto.absolutePath)
-                } else {
-                    null
-                }
-            }.getOrNull()
-        )
-    }
     var tienePermiso by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -78,78 +67,24 @@ fun ProfileCameraScreen(
         )
     }
 
-    var mensajeEstado by remember { mutableStateOf<String?>(null) }
-    var esError by remember { mutableStateOf(false) }
-
-    // Parametros dinamicos de presentacion visual
+    // Parámetros dinámicos de presentación visual (Estado exclusivo de UI)
     var usarBordeRedondeado by remember { mutableStateOf(false) }
     var tamanoFotoDp by remember { mutableFloatStateOf(160f) }
     var usarEscalaCrop by remember { mutableStateOf(true) }
-
-    var nombreEstudiante by remember { mutableStateOf(PerfilEstudianteManager.obtenerNombre(context)) }
-    var apellidoEstudiante by remember { mutableStateOf(PerfilEstudianteManager.obtenerApellido(context)) }
-    var cursoEstudiante by remember { mutableStateOf(PerfilEstudianteManager.obtenerCurso(context)) }
 
     // Launcher de captura de imagen (Retorna Bitmap en memoria)
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
-        if (bitmap != null) {
-            fotoBitmap = bitmap
-            mensajeEstado = "Fotografía capturada y renderizada correctamente en la interfaz."
-            esError = false
-
-            // Persistencia opcional del avatar en context.filesDir
-            runCatching {
-                val archivoFoto = File(context.filesDir, "avatar_perfil.png")
-                FileOutputStream(archivoFoto).use { out ->
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 90, out)
-                }
-            }
-        } else {
-            mensajeEstado = "Captura de fotografía cancelada."
-            esError = false
-        }
+        viewModel.onFotoCapturada(bitmap)
     }
 
-    // Launcher de permisos en tiempo de ejecucion (Runtime Permission)
+    // Launcher de permisos en tiempo de ejecución (Runtime Permission)
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         tienePermiso = isGranted
-        if (isGranted) {
-            mensajeEstado = "Permiso de cámara concedido. Presiona 'Abrir Cámara'."
-            esError = false
-        } else {
-            mensajeEstado = "Permiso de cámara denegado. Se requiere para registrar el perfil escolar."
-            esError = true
-        }
-    }
-    val azulInstitucional = Color(0xFF102B61)
-    val azulPrincipal = Color(0xFF2258A2)
-    val azulClaro = Color(0xFFDCE6FF)
-    val fondoSuave = Color(0xFFF0F4FF)
-
-
-    MaterialTheme(
-        colorScheme = MaterialTheme.colorScheme.copy(
-            primary = azulPrincipal,
-            onPrimary = Color.White,
-            primaryContainer = azulClaro,
-            onPrimaryContainer = azulInstitucional,
-            secondary = azulPrincipal,
-            onSecondary = Color.White,
-            secondaryContainer = azulClaro,
-            onSecondaryContainer = azulInstitucional,
-            background = fondoSuave,
-            onBackground = azulInstitucional,
-            surface = Color.White,
-            onSurface = azulInstitucional,
-            surfaceVariant = azulClaro,
-            surfaceContainerLow = Color.White,
-            outline = Color(0xFF8798B7)
-        )
-    ) {
+        viewModel.onPermisoResultado(isGranted)
     }
 
     Scaffold(
@@ -160,39 +95,30 @@ fun ProfileCameraScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver al menu"
+                            contentDescription = "Volver al menú"
                         )
                     }
                 },
-
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = azulInstitucional,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-
             )
         }
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(fondoSuave)
                 .verticalScroll(scrollState)
                 .padding(20.dp),
-
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
-        )
-        {
-            // Tarjeta de Fundamento Tecnico
+        ) {
+            // Tarjeta de Fundamento Técnico
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 3.dp
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -220,7 +146,7 @@ fun ProfileCameraScreen(
                 }
             }
 
-            // Visualizador del Avatar / Fotografia Renderizada
+            // Visualizador del Avatar / Fotografía Renderizada
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
@@ -236,9 +162,9 @@ fun ProfileCameraScreen(
                 ) {
                     val formaFoto = if (usarBordeRedondeado) RoundedCornerShape(24.dp) else CircleShape
 
-                    if (fotoBitmap != null) {
+                    if (uiState.fotoBitmap != null) {
                         Image(
-                            bitmap = fotoBitmap!!.asImageBitmap(),
+                            bitmap = uiState.fotoBitmap!!.asImageBitmap(),
                             contentDescription = "Fotografía de Perfil",
                             contentScale = if (usarEscalaCrop) ContentScale.Crop else ContentScale.Fit,
                             modifier = Modifier
@@ -274,14 +200,14 @@ fun ProfileCameraScreen(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    val nombreCompleto = "$nombreEstudiante $apellidoEstudiante".trim().ifEmpty { "Estudiante" }
+                    val nombreCompleto = "${uiState.nombre} ${uiState.apellido}".trim().ifEmpty { "Estudiante" }
                     Text(
                         text = nombreCompleto,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "$cursoEstudiante - Escuela Marcela Paz",
+                        text = "${uiState.curso} - Escuela Marcela Paz",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -289,15 +215,10 @@ fun ProfileCameraScreen(
             }
 
             // Formulario de Nombre y Apellido del Estudiante
-
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
                 ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 3.dp
-                ),
-
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -317,80 +238,34 @@ fun ProfileCameraScreen(
                     )
 
                     OutlinedTextField(
-                        value = nombreEstudiante,
-                        onValueChange = { nombreEstudiante = it },
+                        value = uiState.nombre,
+                        onValueChange = { viewModel.onNombreChange(it) },
                         label = { Text("Nombre") },
                         leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth(),
-
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = azulPrincipal,
-                            unfocusedBorderColor = Color(0xFF8798B7),
-                            focusedLabelColor = azulPrincipal,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            cursorColor = azulPrincipal
-                        )
-
-
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     OutlinedTextField(
-                        value = apellidoEstudiante,
-                        onValueChange = { apellidoEstudiante = it },
+                        value = uiState.apellido,
+                        onValueChange = { viewModel.onApellidoChange(it) },
                         label = { Text("Apellido") },
                         leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth(),
-
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = azulPrincipal,
-                            unfocusedBorderColor = Color(0xFF8798B7),
-                            focusedLabelColor = azulPrincipal,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            cursorColor = azulPrincipal
-                        )
-
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     OutlinedTextField(
-                        value = cursoEstudiante,
-                        onValueChange = { cursoEstudiante = it },
+                        value = uiState.curso,
+                        onValueChange = { viewModel.onCursoChange(it) },
                         label = { Text("Curso") },
                         leadingIcon = { Icon(Icons.Default.School, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth(),
-
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = azulPrincipal,
-                            unfocusedBorderColor = Color(0xFF8798B7),
-                            focusedLabelColor = azulPrincipal,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            cursorColor = azulPrincipal
-                        )
-
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     Button(
-                        onClick = {
-                            PerfilEstudianteManager.guardarPerfil(
-                                context = context,
-                                nombre = nombreEstudiante,
-                                apellido = apellidoEstudiante,
-                                curso = cursoEstudiante
-                            )
-                            val completo = "$nombreEstudiante $apellidoEstudiante".trim().ifEmpty { "Estudiante" }
-                            mensajeEstado = "Perfil escolar actualizado correctamente para $completo."
-                            esError = false
-                        },
+                        onClick = { viewModel.guardarPerfil() },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp),
-                                shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = azulPrincipal,
-                            contentColor = Color.White
-                        )
+                            .height(48.dp)
                     ) {
                         Icon(Icons.Default.Save, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -450,7 +325,7 @@ fun ProfileCameraScreen(
                     Icon(Icons.Default.PhotoCamera, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (fotoBitmap == null) "Abrir Cámara y Capturar Foto" else "Tomar Nueva Fotografía",
+                        text = if (uiState.fotoBitmap == null) "Abrir Cámara y Capturar Foto" else "Tomar Nueva Fotografía",
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
@@ -458,13 +333,13 @@ fun ProfileCameraScreen(
 
             // Banner animado de estado
             AnimatedVisibility(
-                visible = mensajeEstado != null,
+                visible = uiState.mensajeEstado != null,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = if (esError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
+                        containerColor = if (uiState.esError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -473,24 +348,25 @@ fun ProfileCameraScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = if (esError) Icons.Default.Error else Icons.Default.CheckCircle,
+                            imageVector = if (uiState.esError) Icons.Default.Error else Icons.Default.CheckCircle,
                             contentDescription = null,
-                            tint = if (esError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                            tint = if (uiState.esError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = mensajeEstado ?: "",
+                            text = uiState.mensajeEstado ?: "",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = if (esError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
+                            color = if (uiState.esError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
             }
 
-            // Panel de Control para Defensa en Vivo: Ajuste de Presentacion Visual
+            // Panel de Control para Defensa en Vivo: Ajuste de Presentación Visual
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White),
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -521,7 +397,7 @@ fun ProfileCameraScreen(
                         )
                     }
 
-                    // Control 2: Slider de Tamano Dinamico
+                    // Control 2: Slider de Tamaño Dinámico
                     Column {
                         Text(
                             text = "Tamaño del Avatar: " + tamanoFotoDp.toInt().toString() + " dp",
@@ -534,7 +410,7 @@ fun ProfileCameraScreen(
                         )
                     }
 
-                    // Control 3: Modo de Escala (Crop vs Fit)
+                    // Control 3: Modo de Ajuste (Crop vs Fit)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,

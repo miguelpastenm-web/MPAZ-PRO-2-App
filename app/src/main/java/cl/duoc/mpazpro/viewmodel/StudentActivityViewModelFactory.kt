@@ -1,17 +1,20 @@
 package cl.duoc.mpazpro.viewmodel
 
+import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import cl.duoc.mpazpro.data.local.database.AppDatabase
 import cl.duoc.mpazpro.data.repository.AppRepository
 
 /**
  * Factory encargada de crear StudentActivityViewModel.
  *
- * Permite entregarle el repositorio que necesita para
+ * Permite entregarle la aplicación y el repositorio que necesita para
  * consultar y guardar información en la base de datos.
  */
 class StudentActivityViewModelFactory(
-    private val repository: AppRepository
+    private val application: Application,
+    private val repository: AppRepository = AppRepository(AppDatabase.getDatabase(application.applicationContext))
 ) : ViewModelProvider.Factory {
 
     /**
@@ -30,10 +33,10 @@ class StudentActivityViewModelFactory(
             )
         ) {
 
-            // Creamos el ViewModel entregándole AppRepository.
+            // Creamos el ViewModel entregándole Application y AppRepository.
             // El cast es necesario por el tipo genérico T.
             @Suppress("UNCHECKED_CAST")
-            return StudentActivityViewModel(repository) as T
+            return StudentActivityViewModel(application, repository) as T
         }
 
         // Informamos si se solicita un ViewModel no compatible.
@@ -42,3 +45,4 @@ class StudentActivityViewModelFactory(
         )
     }
 }
+

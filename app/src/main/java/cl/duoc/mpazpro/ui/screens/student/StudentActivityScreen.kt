@@ -32,12 +32,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.ui.platform.LocalContext
-import cl.duoc.mpazpro.data.local.database.AppDatabase
-import cl.duoc.mpazpro.data.repository.AppRepository
 import cl.duoc.mpazpro.viewmodel.StudentActivityViewModel
-import cl.duoc.mpazpro.viewmodel.StudentActivityViewModelFactory
-import cl.duoc.mpazpro.data.local.preferences.ConfiguracionEvaluacion
 
 
 /**
@@ -65,16 +60,17 @@ data class ActividadDidactica(
  *
  * Utiliza un ViewModel para consultar actividades
  * y guardar los resultados de la evaluación.
+ *
+ * MVVM: La pantalla delega a StudentActivityViewModel la lectura de ConfiguracionEvaluacion
+ * y la construcción del repositorio. Solo se instancia la Factory aquí para inyectar dependencias.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentActivityScreen(
     onBack: () -> Unit,
-    oaId: Int = -1
+    oaId: Int = -1,
+    studentViewModel: StudentActivityViewModel = viewModel()
 ) {
-
-    // Obtenemos el contexto para acceder a nuestra base de datos.
-    val context = LocalContext.current
     val asignaturaSeleccionada = if (oaId > 0) {
         when (oaId) {
             1 -> "Lenguaje y Comunicación"
@@ -84,24 +80,11 @@ fun StudentActivityScreen(
             else -> ""
         }
     } else ""
-    val permitirPistas = if (asignaturaSeleccionada.isNotEmpty()) {
-        ConfiguracionEvaluacion.obtenerPistasPorMateria(context, asignaturaSeleccionada)
-    } else {
-        ConfiguracionEvaluacion.obtenerPistas(context)
-    }
 
-    // Creamos la Factory con una referencia a Room y al
-    // repositorio. remember evita recrearla innecesariamente.
-    val factory = remember(context) {
-        val database = AppDatabase.getDatabase(context)
-        val repository = AppRepository(database)
-        StudentActivityViewModelFactory(repository)
+    // Consultamos las pistas desde el ViewModel (no desde la capa de datos directamente)
+    val permitirPistas = remember(asignaturaSeleccionada) {
+        studentViewModel.obtenerPermitirPistas(asignaturaSeleccionada)
     }
-
-    // Creamos el ViewModel que consultará las actividades.
-    val studentViewModel: StudentActivityViewModel = viewModel(
-        factory = factory
-    )
 
     // Si se pasa un oaId específico (> 0), recarga solo las actividades de esa materia
     LaunchedEffect(oaId) {
@@ -154,41 +137,6 @@ fun StudentActivityScreen(
                 explicacionGuiada = "Lee la pregunta con atención y elige la respuesta que consideres correcta."
             )
         }
-    }
-
-
-    // Lista de actividades didacticas de prueba (alineadas a los OAs de 2.º Basico)
-    val actividadesDePrueba = remember {
-
-        listOf(
-            ActividadDidactica(
-                id = 1,
-                asignatura = "Matemática",
-                pregunta = "¿Cuánto es 5 + 3?",
-                audioInstruccion = "Escucha: suma cinco manzanas más tres manzanas. ¿Cuántas hay?",
-                opciones = listOf("7", "8", "9"),
-                respuestaCorrectaIndex = 1,
-                explicacionGuiada = "Pista: Cuenta desde el 5: seis, siete, ocho. ¡Son 8 en total!"
-            ),
-            ActividadDidactica(
-                id = 2,
-                asignatura = "Lenguaje y Comunicación",
-                pregunta = "¿Qué palabra rima con 'GATO'?",
-                audioInstruccion = "Escucha con atención: busca la palabra que termina igual que gato.",
-                opciones = listOf("PATO", "CASA", "PERRO"),
-                respuestaCorrectaIndex = 0,
-                explicacionGuiada = "Pista: G-ATO y P-ATO terminan con el mismo sonido 'ATO'."
-            ),
-            ActividadDidactica(
-                id = 3,
-                asignatura = "Ciencias Naturales",
-                pregunta = "¿Qué necesitan las plantas para crecer?",
-                audioInstruccion = "Piensa en lo que le pones a una semilla para que viva.",
-                opciones = listOf("Juguetes", "Agua y Luz", "Dulces"),
-                respuestaCorrectaIndex = 1,
-                explicacionGuiada = "Pista: Las plantas beben agua de la tierra y toman sol para fabricar su alimento."
-            )
-        )
     }
 
     // Usamos las preguntas de Room cuando terminan de cargar.
@@ -355,9 +303,9 @@ fun StudentActivityScreen(
                         )
                     }
 
-                    // Información del docente y fecha límite configurada (sin emojis)
+                    // Información del docente y fecha límite configurada (obtenida del ViewModel)
                     val configMateria = remember(actividadActual.asignatura) {
-                        ConfiguracionEvaluacion.obtenerParametros(context, actividadActual.asignatura)
+                        studentViewModel.obtenerConfiguracionMateria(actividadActual.asignatura)
                     }
                     if (configMateria != null) {
                         Row(

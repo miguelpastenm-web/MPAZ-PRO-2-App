@@ -1,22 +1,43 @@
 package cl.duoc.mpazpro.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import cl.duoc.mpazpro.data.local.database.AppDatabase
+import cl.duoc.mpazpro.data.local.database.entities.DocenteEntity
+import cl.duoc.mpazpro.data.local.preferences.ConfiguracionEvaluacion
+import cl.duoc.mpazpro.data.local.preferences.EvaluacionConfig
+import cl.duoc.mpazpro.data.repository.AppRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
 /**
- * ViewModel que gestiona la logica de validacion del formulario docente
+ * ViewModel que gestiona la logica de validacion del formulario docente.
  * Centraliza validaciones desacopladas de componentes visuales con StateFlow.
+ *
+ * También encapsula la persistencia en SharedPreferences (ConfiguracionEvaluacion)
+ * y en Room (DocenteEntity) para que la pantalla no acceda directamente a la capa de datos.
  */
-class TeacherFormViewModel : ViewModel() {
+class TeacherFormViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val context = application.applicationContext
+    private val repository: AppRepository
 
     private val _uiState = MutableStateFlow(TeacherFormUiState())
     val uiState: StateFlow<TeacherFormUiState> = _uiState.asStateFlow()
+
+    init {
+        val database = AppDatabase.getDatabase(context)
+        repository = AppRepository(database)
+        // Cargar configuración previa de la asignatura por defecto
+        cargarConfigDesdePreferences(_uiState.value.asignatura)
+    }
 
     // --- Funciones individuales de validacion logica (Facilita modificacion en vivo en la Defensa) ---
 
@@ -121,6 +142,8 @@ class TeacherFormViewModel : ViewModel() {
                 isSuccess = false
             )
         }
+        // Al cambiar de asignatura, cargar configuración previamente guardada
+        cargarConfigDesdePreferences(asignatura)
     }
 
     fun onPermitirPistasChange(permitir: Boolean) {
@@ -138,6 +161,23 @@ class TeacherFormViewModel : ViewModel() {
                 confirmarParametros = confirmado,
                 confirmarParametrosError = if (currentState.confirmarParametrosError != null) validarConfirmacion(confirmado) else null,
                 isSuccess = false
+            )
+        }
+    }
+
+    /**
+     * Carga en el formulario los parámetros previamente guardados para la asignatura seleccionada.
+     * Lectura interna de SharedPreferences, la pantalla no necesita conocer ConfiguracionEvaluacion.
+     */
+    private fun cargarConfigDesdePreferences(asignatura: String) {
+        val guardada = ConfiguracionEvaluacion.obtenerParametros(context, asignatura)
+        if (guardada != null) {
+            cargarConfiguracionPrevia(
+                nombre = guardada.docente,
+                codigo = guardada.codigoDocente,
+                intentos = guardada.maxIntentos.toString(),
+                fecha = guardada.fechaLimite,
+                pistas = guardada.permitirPistas
             )
         }
     }
@@ -172,6 +212,10 @@ class TeacherFormViewModel : ViewModel() {
 
     // --- Accion de Guardado ---
 
+    /**
+     * Valida el formulario y, si es válido, persiste los parámetros en SharedPreferences
+     * y el docente en Room. La pantalla solo necesita llamar este método.
+     */
     fun validarYGuardar(): Boolean {
         val actual = _uiState.value
 
@@ -193,6 +237,30 @@ class TeacherFormViewModel : ViewModel() {
                 isSuccess = !hayErrores,
                 successMessage = if (!hayErrores) "Parámetros guardados exitosamente para ${actual.asignatura}" else null
             )
+        }
+
+        if (!hayErrores) {
+            // Persistencia en SharedPreferences
+            val config = EvaluacionConfig(
+                asignatura = actual.asignatura,
+                docente = actual.nombreDocente,
+                codigoDocente = actual.codigoDocente,
+                maxIntentos = actual.maxIntentos.toIntOrNull() ?: 1,
+                fechaLimite = actual.fechaLimite,
+                permitirPistas = actual.permitirPistas
+            )
+            ConfiguracionEvaluacion.guardarParametros(context, config)
+
+            // Persistencia en Room (Tabla docentes)
+            viewModelScope.launch {
+                repository.insertarDocente(
+                    DocenteEntity(
+                        nombre = actual.nombreDocente,
+                        correoFicticio = actual.codigoDocente,
+                        asignatura = actual.asignatura
+                    )
+                )
+            }
         }
 
         return !hayErrores

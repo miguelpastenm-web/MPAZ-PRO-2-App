@@ -73,14 +73,6 @@ object ConfiguracionEvaluacion {
         return config?.permitirPistas ?: obtenerPistas(context)
     }
 
-    fun guardarPistas(context: Context, permitir: Boolean) {
-        context.applicationContext
-            .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit()
-            .putBoolean("permitir_pistas", permitir)
-            .apply()
-    }
-
     fun obtenerPistas(context: Context): Boolean {
         return context.applicationContext
             .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
