@@ -68,9 +68,7 @@ fun AppNavigation(
         composable(AppScreens.InicioRol.route) {
             RoleSelectionPlaceholderScreen(
                 onNavigateToTeacher = { navController.navigate(AppScreens.FormularioDocente.route) },
-                onNavigateToStudent = { navController.navigate(AppScreens.HomeEstudiante.route) },
-                onNavigateToExport = { navController.navigate(AppScreens.ExportarReporte.route) },
-                onNavigateToProfile = { navController.navigate(AppScreens.PerfilCamara.route) }
+                onNavigateToStudent = { navController.navigate(AppScreens.HomeEstudiante.route) }
             )
         }
         composable(AppScreens.HomeEstudiante.route) {
@@ -78,7 +76,8 @@ fun AppNavigation(
                 onBack = { navController.popBackStack() },
                 onSelectMateria = { oaId ->
                     navController.navigate(AppScreens.ActividadesEstudiante.createRoute(oaId))
-                }
+                },
+                onNavigateToProfile = { navController.navigate(AppScreens.PerfilCamara.route) }
             )
         }
         composable(AppScreens.FormularioDocente.route) {
@@ -119,9 +118,7 @@ fun AppNavigation(
 @Composable
 private fun RoleSelectionPlaceholderScreen(
     onNavigateToTeacher: () -> Unit,
-    onNavigateToStudent: () -> Unit,
-    onNavigateToExport: () -> Unit,
-    onNavigateToProfile: () -> Unit
+    onNavigateToStudent: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -149,61 +146,35 @@ private fun RoleSelectionPlaceholderScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Selecciona un módulo para navegar:",
+                text = "Selecciona tu perfil de acceso:",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Button(
                 onClick = onNavigateToTeacher,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp)
+                    .height(56.dp)
             ) {
                 Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
                 Text("Panel Docente / UTP", style = MaterialTheme.typography.titleMedium)
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             FilledTonalButton(
                 onClick = onNavigateToStudent,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp)
+                    .height(56.dp)
             ) {
                 Icon(Icons.Default.School, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
                 Text("Estudiante 2.º Básico", style = MaterialTheme.typography.titleMedium)
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            FilledTonalButton(
-                onClick = onNavigateToExport,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp)
-            ) {
-                Icon(Icons.Default.FolderShared, contentDescription = null)
-                Spacer(modifier = Modifier.width(12.dp))
-                Text("Reportes de Evaluación", style = MaterialTheme.typography.titleMedium)
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            OutlinedButton(
-                onClick = onNavigateToProfile,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp)
-            ) {
-                Icon(Icons.Default.CameraAlt, contentDescription = null)
-                Spacer(modifier = Modifier.width(12.dp))
-                Text("Credencial y Perfil Escolar", style = MaterialTheme.typography.titleMedium)
             }
         }
     }

@@ -11,6 +11,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Forest
 import androidx.compose.material.icons.filled.FormatListNumbered
@@ -57,13 +58,15 @@ data class MateriaItem(
  * RESPONSABILIDADES:
  * 1. Presentar de forma amigable y ordenada las 4 asignaturas del currículum.
  * 2. Conectar y reflejar los parámetros de evaluación fijados por el docente (fecha, docente, intentos).
- * 3. Desacoplamiento total: no conoce NavController, solo emite callbacks (onSelectMateria, onBack).
+ * 3. Acceder a la credencial y perfil escolar del propio estudiante.
+ * 4. Desacoplamiento total: no conoce NavController, solo emite callbacks.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentHomeScreen(
     onBack: () -> Unit,
-    onSelectMateria: (Int) -> Unit
+    onSelectMateria: (Int) -> Unit,
+    onNavigateToProfile: () -> Unit
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
@@ -112,6 +115,14 @@ fun StudentHomeScreen(
                         )
                     }
                 },
+                actions = {
+                    IconButton(onClick = onNavigateToProfile) {
+                        Icon(
+                            imageVector = Icons.Default.CameraAlt,
+                            contentDescription = "Mi Credencial y Perfil Escolar"
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -140,8 +151,9 @@ fun StudentHomeScreen(
                 }.getOrNull()
             }
 
-            // Tarjeta de Bienvenida y Motivación Pedagógica
+            // Tarjeta de Bienvenida y Motivación Pedagógica (Clickeable para ver/editar perfil)
             Card(
+                onClick = onNavigateToProfile,
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
                 ),
@@ -170,7 +182,7 @@ fun StudentHomeScreen(
                         )
                     }
                     Spacer(modifier = Modifier.width(14.dp))
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "¡Hola, $nombreCompleto!",
                             style = MaterialTheme.typography.titleLarge,
@@ -189,6 +201,12 @@ fun StudentHomeScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    Icon(
+                        imageVector = Icons.Default.CameraAlt,
+                        contentDescription = "Editar credencial",
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                        modifier = Modifier.size(22.dp)
+                    )
                 }
             }
 
@@ -204,6 +222,31 @@ fun StudentHomeScreen(
                     onClick = { onSelectMateria(materia.oaId) }
                 )
             }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Botón en la sección del Estudiante para gestionar su Credencial Escolar
+            OutlinedButton(
+                onClick = onNavigateToProfile,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CameraAlt,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "Mi Credencial y Perfil Escolar",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
