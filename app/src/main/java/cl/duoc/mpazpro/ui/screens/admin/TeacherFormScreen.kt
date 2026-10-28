@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import android.app.DatePickerDialog
 import java.util.Calendar
-import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Event
 import cl.duoc.mpazpro.ui.components.CustomValidatedField
 import cl.duoc.mpazpro.viewmodel.TeacherFormViewModel
