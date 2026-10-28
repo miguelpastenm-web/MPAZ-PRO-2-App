@@ -37,6 +37,7 @@ import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.FileOutputStream
 import android.graphics.BitmapFactory
+import androidx.compose.ui.graphics.Color
 
 /**
  * Pantalla de Perfil con acceso a Camara y gestion de permisos en tiempo de ejecucion
@@ -124,6 +125,32 @@ fun ProfileCameraScreen(
             esError = true
         }
     }
+    val azulInstitucional = Color(0xFF102B61)
+    val azulPrincipal = Color(0xFF2258A2)
+    val azulClaro = Color(0xFFDCE6FF)
+    val fondoSuave = Color(0xFFF0F4FF)
+
+
+    MaterialTheme(
+        colorScheme = MaterialTheme.colorScheme.copy(
+            primary = azulPrincipal,
+            onPrimary = Color.White,
+            primaryContainer = azulClaro,
+            onPrimaryContainer = azulInstitucional,
+            secondary = azulPrincipal,
+            onSecondary = Color.White,
+            secondaryContainer = azulClaro,
+            onSecondaryContainer = azulInstitucional,
+            background = fondoSuave,
+            onBackground = azulInstitucional,
+            surface = Color.White,
+            onSurface = azulInstitucional,
+            surfaceVariant = azulClaro,
+            surfaceContainerLow = Color.White,
+            outline = Color(0xFF8798B7)
+        )
+    ) {
+    }
 
     Scaffold(
         topBar = {
@@ -137,26 +164,35 @@ fun ProfileCameraScreen(
                         )
                     }
                 },
+
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = azulInstitucional,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
                 )
+
             )
         }
     ) { paddingValues ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .background(fondoSuave)
                 .verticalScroll(scrollState)
                 .padding(20.dp),
+
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+        )
+        {
             // Tarjeta de Fundamento Tecnico
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 3.dp
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -253,10 +289,15 @@ fun ProfileCameraScreen(
             }
 
             // Formulario de Nombre y Apellido del Estudiante
+
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    containerColor = Color.White
                 ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 3.dp
+                ),
+
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -280,7 +321,18 @@ fun ProfileCameraScreen(
                         onValueChange = { nombreEstudiante = it },
                         label = { Text("Nombre") },
                         leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = azulPrincipal,
+                            unfocusedBorderColor = Color(0xFF8798B7),
+                            focusedLabelColor = azulPrincipal,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            cursorColor = azulPrincipal
+                        )
+
+
                     )
 
                     OutlinedTextField(
@@ -288,7 +340,17 @@ fun ProfileCameraScreen(
                         onValueChange = { apellidoEstudiante = it },
                         label = { Text("Apellido") },
                         leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = azulPrincipal,
+                            unfocusedBorderColor = Color(0xFF8798B7),
+                            focusedLabelColor = azulPrincipal,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            cursorColor = azulPrincipal
+                        )
+
                     )
 
                     OutlinedTextField(
@@ -296,7 +358,17 @@ fun ProfileCameraScreen(
                         onValueChange = { cursoEstudiante = it },
                         label = { Text("Curso") },
                         leadingIcon = { Icon(Icons.Default.School, contentDescription = null) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = azulPrincipal,
+                            unfocusedBorderColor = Color(0xFF8798B7),
+                            focusedLabelColor = azulPrincipal,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            cursorColor = azulPrincipal
+                        )
+
                     )
 
                     Button(
@@ -313,7 +385,12 @@ fun ProfileCameraScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp)
+                            .height(48.dp),
+                                shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = azulPrincipal,
+                            contentColor = Color.White
+                        )
                     ) {
                         Icon(Icons.Default.Save, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -413,8 +490,7 @@ fun ProfileCameraScreen(
             // Panel de Control para Defensa en Vivo: Ajuste de Presentacion Visual
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                ),
+                    containerColor = Color.White),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(

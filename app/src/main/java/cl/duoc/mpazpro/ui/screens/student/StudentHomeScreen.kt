@@ -35,6 +35,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.BitmapFactory
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Color
 import java.io.File
 import cl.duoc.mpazpro.data.local.preferences.ConfiguracionEvaluacion
 import cl.duoc.mpazpro.data.local.preferences.EvaluacionConfig
@@ -102,151 +104,182 @@ fun StudentHomeScreen(
             icono = Icons.Default.Public
         )
     )
+// Colores institucionales de MPAZ PRO
+    val azulInstitucional = Color(0xFF102B61)
+    val azulPrincipal = Color(0xFF2258A2)
+    val azulClaro = Color(0xFFDCE6FF)
+    val fondoSuave = Color(0xFFF0F4FF)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Mis Asignaturas") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver al inicio"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onNavigateToProfile) {
+    MaterialTheme(
+        colorScheme = MaterialTheme.colorScheme.copy(
+            primary = azulPrincipal,
+            onPrimary = Color.White,
+            primaryContainer = azulClaro,
+            onPrimaryContainer = azulInstitucional,
+            secondary = azulPrincipal,
+            secondaryContainer = azulClaro,
+            onSecondaryContainer = azulInstitucional,
+            background = fondoSuave,
+            onBackground = azulInstitucional,
+            surface = Color.White,
+            onSurface = azulInstitucional,
+            surfaceVariant = azulClaro,
+            surfaceContainerHigh = Color.White,
+            outline = Color(0xFF8798B7)
+        )
+    ) {
+
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Mis Asignaturas") },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Volver al inicio"
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onNavigateToProfile) {
+                            Icon(
+                                imageVector = Icons.Default.CameraAlt,
+                                contentDescription = "Mi Credencial y Perfil Escolar"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = azulInstitucional,
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White,
+                        actionIconContentColor = Color.White
+                    )
+
+                )
+            }
+        ) { paddingValues ->
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .background(fondoSuave)
+                    .verticalScroll(scrollState)
+                    .padding(20.dp),
+
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                val nombreCompleto = remember(context) {
+                    PerfilEstudianteManager.obtenerNombreCompleto(context)
+                }
+                val cursoEstudiante = remember(context) {
+                    PerfilEstudianteManager.obtenerCurso(context)
+                }
+                val avatarBitmap = remember(context) {
+                    runCatching {
+                        val file = File(context.filesDir, "avatar_perfil.png")
+                        if (file.exists()) BitmapFactory.decodeFile(file.absolutePath) else null
+                    }.getOrNull()
+                }
+
+                // Tarjeta de Bienvenida y Motivación Pedagógica (Clickeable para ver/editar perfil)
+                Card(
+                    onClick = onNavigateToProfile,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (avatarBitmap != null) {
+                            Image(
+                                bitmap = avatarBitmap.asImageBitmap(),
+                                contentDescription = "Avatar de $nombreCompleto",
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .clip(CircleShape)
+                                    .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.School,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(44.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "¡Hola, $nombreCompleto!",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "$cursoEstudiante - Escuela Marcela Paz",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Selecciona una materia para practicar tus desafíos:",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                         Icon(
                             imageVector = Icons.Default.CameraAlt,
-                            contentDescription = "Mi Credencial y Perfil Escolar"
+                            contentDescription = "Editar credencial",
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                            modifier = Modifier.size(22.dp)
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(scrollState)
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            val nombreCompleto = remember(context) {
-                PerfilEstudianteManager.obtenerNombreCompleto(context)
-            }
-            val cursoEstudiante = remember(context) {
-                PerfilEstudianteManager.obtenerCurso(context)
-            }
-            val avatarBitmap = remember(context) {
-                runCatching {
-                    val file = File(context.filesDir, "avatar_perfil.png")
-                    if (file.exists()) BitmapFactory.decodeFile(file.absolutePath) else null
-                }.getOrNull()
-            }
+                }
 
-            // Tarjeta de Bienvenida y Motivación Pedagógica (Clickeable para ver/editar perfil)
-            Card(
-                onClick = onNavigateToProfile,
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (avatarBitmap != null) {
-                        Image(
-                            bitmap = avatarBitmap.asImageBitmap(),
-                            contentDescription = "Avatar de $nombreCompleto",
-                            modifier = Modifier
-                                .size(50.dp)
-                                .clip(CircleShape)
-                                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.School,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(44.dp)
-                        )
+                // Listado de Tarjetas por Materia (conectadas a la configuración docente)
+                materias.forEach { materia ->
+                    val config = remember(materia.nombre) {
+                        ConfiguracionEvaluacion.obtenerParametros(context, materia.nombre)
                     }
-                    Spacer(modifier = Modifier.width(14.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "¡Hola, $nombreCompleto!",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "$cursoEstudiante - Escuela Marcela Paz",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "Selecciona una materia para practicar tus desafíos:",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Icon(
-                        imageVector = Icons.Default.CameraAlt,
-                        contentDescription = "Editar credencial",
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                        modifier = Modifier.size(22.dp)
+
+                    MateriaCard(
+                        materia = materia,
+                        config = config,
+                        onClick = { onSelectMateria(materia.oaId) }
                     )
                 }
-            }
 
-            // Listado de Tarjetas por Materia (conectadas a la configuración docente)
-            materias.forEach { materia ->
-                val config = remember(materia.nombre) {
-                    ConfiguracionEvaluacion.obtenerParametros(context, materia.nombre)
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Botón en la sección del Estudiante para gestionar su Credencial Escolar
+                OutlinedButton(
+                    onClick = onNavigateToProfile,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CameraAlt,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = "Mi Credencial y Perfil Escolar",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
 
-                MateriaCard(
-                    materia = materia,
-                    config = config,
-                    onClick = { onSelectMateria(materia.oaId) }
-                )
+                Spacer(modifier = Modifier.height(16.dp))
             }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Botón en la sección del Estudiante para gestionar su Credencial Escolar
-            OutlinedButton(
-                onClick = onNavigateToProfile,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CameraAlt,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = "Mi Credencial y Perfil Escolar",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -264,11 +297,16 @@ private fun MateriaCard(
     config: EvaluacionConfig?,
     onClick: () -> Unit
 ) {
+
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            containerColor = Color.White
         ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 3.dp
+        ),
+
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize()

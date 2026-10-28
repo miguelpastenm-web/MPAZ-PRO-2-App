@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +24,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -237,6 +239,32 @@ fun StudentActivityScreen(
         estaCargando = false
     }
 
+
+    val azulInstitucional = Color(0xFF102B61)
+    val azulPrincipal = Color(0xFF2258A2)
+    val azulClaro = Color(0xFFDCE6FF)
+    val fondoSuave = Color(0xFFF0F4FF)
+
+    MaterialTheme(
+        colorScheme = MaterialTheme.colorScheme.copy(
+            primary = azulPrincipal,
+            onPrimary = Color.White,
+            primaryContainer = azulClaro,
+            onPrimaryContainer = azulInstitucional,
+            secondary = azulPrincipal,
+            secondaryContainer = azulClaro,
+            onSecondaryContainer = azulInstitucional,
+            background = fondoSuave,
+            onBackground = azulInstitucional,
+            surface = Color.White,
+            onSurface = azulInstitucional,
+            surfaceVariant = azulClaro,
+            surfaceContainerHigh = Color.White,
+            outline = Color(0xFF8798B7)
+        )
+    ) {
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -249,19 +277,26 @@ fun StudentActivityScreen(
                         )
                     }
                 },
+
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    containerColor = azulInstitucional,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
                 )
+
             )
         }
     ) { paddingValues ->
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .background(fondoSuave),
             contentAlignment = Alignment.Center
-        ) {
+        )
+
+        {
             // Animacion 1: Loader dinamico mientras se cargan las actividades
             if (estaCargando || cargandoRoom) {
                 Column(
@@ -347,10 +382,15 @@ fun StudentActivityScreen(
                     Card(
                         shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            containerColor = Color.White
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 3.dp
                         ),
                         modifier = Modifier.fillMaxWidth()
-                    ) {
+                    )
+
+                    {
                         Column(
                             modifier = Modifier.padding(20.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
@@ -362,8 +402,7 @@ fun StudentActivityScreen(
                                     fontWeight = FontWeight.Bold
                                 ),
                                 textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                                color = azulInstitucional                            )
 
                             Spacer(modifier = Modifier.height(16.dp))
 
@@ -407,16 +446,29 @@ fun StudentActivityScreen(
                         val esSeleccionada = opcionSeleccionada == index
                         val esCorrecta = index == actividadActual.respuestaCorrectaIndex
 
+
                         val botonColor = when {
-                            opcionSeleccionada == null -> ButtonDefaults.buttonColors()
+                            opcionSeleccionada == null -> ButtonDefaults.buttonColors(
+                                containerColor = azulPrincipal,
+                                contentColor = Color.White
+                            )
+
                             esSeleccionada && esCorrecta -> ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
+                                containerColor = Color(0xFF23834B),
+                                contentColor = Color.White
                             )
+
                             esSeleccionada && !esCorrecta -> ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error
+                                containerColor = Color(0xFFC43C47),
+                                contentColor = Color.White
                             )
-                            else -> ButtonDefaults.outlinedButtonColors()
+
+                            else -> ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFDCE6FF),
+                                contentColor = azulInstitucional
+                            )
                         }
+
 
                         Button(
 
