@@ -34,6 +34,8 @@ import androidx.compose.material.icons.filled.Event
 import cl.duoc.mpazpro.ui.components.CustomValidatedField
 import cl.duoc.mpazpro.viewmodel.TeacherFormViewModel
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import cl.duoc.mpazpro.ui.theme.AzulInstitucional
 
 /**
  * Pantalla de Formulario Docente con validacion desacoplada y soporte visual.
@@ -87,8 +89,9 @@ fun TeacherFormScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = AzulInstitucional,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
                 )
             )
         }
