@@ -1,18 +1,18 @@
 
-package cl.duoc.mpazpro.data.local
+package cl.duoc.mpazpro.data.local.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import cl.duoc.mpazpro.data.local.dao.ActividadDao
-import cl.duoc.mpazpro.data.local.dao.DocenteDao
-import cl.duoc.mpazpro.data.local.dao.ObjetivoAprendizajeDao
-import cl.duoc.mpazpro.data.local.dao.ResultadoPruebaDao
-import cl.duoc.mpazpro.data.local.entities.ActividadEntity
-import cl.duoc.mpazpro.data.local.entities.DocenteEntity
-import cl.duoc.mpazpro.data.local.entities.ObjetivoAprendizajeEntity
-import cl.duoc.mpazpro.data.local.entities.ResultadoPruebaEntity
+import cl.duoc.mpazpro.data.local.database.dao.ActividadDao
+import cl.duoc.mpazpro.data.local.database.dao.DocenteDao
+import cl.duoc.mpazpro.data.local.database.dao.ObjetivoAprendizajeDao
+import cl.duoc.mpazpro.data.local.database.dao.ResultadoPruebaDao
+import cl.duoc.mpazpro.data.local.database.entities.ActividadEntity
+import cl.duoc.mpazpro.data.local.database.entities.DocenteEntity
+import cl.duoc.mpazpro.data.local.database.entities.ObjetivoAprendizajeEntity
+import cl.duoc.mpazpro.data.local.database.entities.ResultadoPruebaEntity
 
 /**
  * Base de datos local de MPAZ PRO.

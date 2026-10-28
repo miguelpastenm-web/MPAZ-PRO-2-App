@@ -34,10 +34,10 @@ import androidx.compose.material.icons.filled.Event
 import cl.duoc.mpazpro.ui.components.CustomValidatedField
 import cl.duoc.mpazpro.viewmodel.TeacherFormViewModel
 import androidx.compose.ui.platform.LocalContext
-import cl.duoc.mpazpro.data.local.AppDatabase
-import cl.duoc.mpazpro.data.local.ConfiguracionEvaluacion
-import cl.duoc.mpazpro.data.local.EvaluacionConfig
-import cl.duoc.mpazpro.data.local.entities.DocenteEntity
+import cl.duoc.mpazpro.data.local.database.AppDatabase
+import cl.duoc.mpazpro.data.local.preferences.ConfiguracionEvaluacion
+import cl.duoc.mpazpro.data.local.preferences.EvaluacionConfig
+import cl.duoc.mpazpro.data.local.database.entities.DocenteEntity
 import cl.duoc.mpazpro.data.repository.AppRepository
 import kotlinx.coroutines.launch
 

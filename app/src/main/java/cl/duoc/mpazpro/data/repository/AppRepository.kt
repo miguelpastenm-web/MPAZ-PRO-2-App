@@ -1,11 +1,11 @@
 
 package cl.duoc.mpazpro.data.repository
 
-import cl.duoc.mpazpro.data.local.AppDatabase
-import cl.duoc.mpazpro.data.local.entities.ActividadEntity
-import cl.duoc.mpazpro.data.local.entities.DocenteEntity
-import cl.duoc.mpazpro.data.local.entities.ObjetivoAprendizajeEntity
-import cl.duoc.mpazpro.data.local.entities.ResultadoPruebaEntity
+import cl.duoc.mpazpro.data.local.database.AppDatabase
+import cl.duoc.mpazpro.data.local.database.entities.ActividadEntity
+import cl.duoc.mpazpro.data.local.database.entities.DocenteEntity
+import cl.duoc.mpazpro.data.local.database.entities.ObjetivoAprendizajeEntity
+import cl.duoc.mpazpro.data.local.database.entities.ResultadoPruebaEntity
 import kotlinx.coroutines.flow.Flow
 
 /**

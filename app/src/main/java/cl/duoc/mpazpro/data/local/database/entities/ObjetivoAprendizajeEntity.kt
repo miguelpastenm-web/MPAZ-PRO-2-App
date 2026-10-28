@@ -1,5 +1,5 @@
 
-package cl.duoc.mpazpro.data.local.entities
+package cl.duoc.mpazpro.data.local.database.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

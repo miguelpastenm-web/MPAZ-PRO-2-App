@@ -21,9 +21,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import cl.duoc.mpazpro.data.local.AppDatabase
-import cl.duoc.mpazpro.data.local.PerfilEstudianteManager
-import cl.duoc.mpazpro.data.local.ReportStorageManager
+import cl.duoc.mpazpro.data.local.database.AppDatabase
+import cl.duoc.mpazpro.data.local.preferences.PerfilEstudianteManager
+import cl.duoc.mpazpro.data.local.storage.ReportStorageManager
 import kotlinx.coroutines.launch
 
 /**

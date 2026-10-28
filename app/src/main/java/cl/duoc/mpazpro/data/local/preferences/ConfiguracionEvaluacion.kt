@@ -1,4 +1,4 @@
-package cl.duoc.mpazpro.data.local
+package cl.duoc.mpazpro.data.local.preferences
 
 import android.content.Context
 

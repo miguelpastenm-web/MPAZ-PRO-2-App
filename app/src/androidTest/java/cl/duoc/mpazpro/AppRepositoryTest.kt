@@ -4,8 +4,8 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import android.content.Context
-import cl.duoc.mpazpro.data.local.AppDatabase
-import cl.duoc.mpazpro.data.local.entities.ActividadEntity
+import cl.duoc.mpazpro.data.local.database.AppDatabase
+import cl.duoc.mpazpro.data.local.database.entities.ActividadEntity
 import cl.duoc.mpazpro.data.repository.AppRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking

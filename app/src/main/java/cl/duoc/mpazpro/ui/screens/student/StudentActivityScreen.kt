@@ -31,11 +31,11 @@ import kotlinx.coroutines.delay
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.platform.LocalContext
-import cl.duoc.mpazpro.data.local.AppDatabase
+import cl.duoc.mpazpro.data.local.database.AppDatabase
 import cl.duoc.mpazpro.data.repository.AppRepository
 import cl.duoc.mpazpro.viewmodel.StudentActivityViewModel
 import cl.duoc.mpazpro.viewmodel.StudentActivityViewModelFactory
-import cl.duoc.mpazpro.data.local.ConfiguracionEvaluacion
+import cl.duoc.mpazpro.data.local.preferences.ConfiguracionEvaluacion
 
 
 /**

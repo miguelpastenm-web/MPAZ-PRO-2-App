@@ -1,4 +1,4 @@
-package cl.duoc.mpazpro.data.local.dao
+package cl.duoc.mpazpro.data.local.database.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -6,7 +6,7 @@ import androidx.room.Update
 import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.OnConflictStrategy
-import cl.duoc.mpazpro.data.local.entities.ObjetivoAprendizajeEntity
+import cl.duoc.mpazpro.data.local.database.entities.ObjetivoAprendizajeEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

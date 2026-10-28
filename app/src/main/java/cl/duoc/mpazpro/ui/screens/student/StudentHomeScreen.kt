@@ -36,9 +36,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.BitmapFactory
 import java.io.File
-import cl.duoc.mpazpro.data.local.ConfiguracionEvaluacion
-import cl.duoc.mpazpro.data.local.EvaluacionConfig
-import cl.duoc.mpazpro.data.local.PerfilEstudianteManager
+import cl.duoc.mpazpro.data.local.preferences.ConfiguracionEvaluacion
+import cl.duoc.mpazpro.data.local.preferences.EvaluacionConfig
+import cl.duoc.mpazpro.data.local.preferences.PerfilEstudianteManager
 
 /**
  * Modelo de datos inmutable para representar una materia escolar.

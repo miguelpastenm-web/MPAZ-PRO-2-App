@@ -3,8 +3,8 @@ package cl.duoc.mpazpro.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cl.duoc.mpazpro.data.local.entities.ActividadEntity
-import cl.duoc.mpazpro.data.local.entities.ResultadoPruebaEntity
+import cl.duoc.mpazpro.data.local.database.entities.ActividadEntity
+import cl.duoc.mpazpro.data.local.database.entities.ResultadoPruebaEntity
 import cl.duoc.mpazpro.data.repository.AppRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

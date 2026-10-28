@@ -1,5 +1,5 @@
 
-package cl.duoc.mpazpro.data.local
+package cl.duoc.mpazpro.data.local.database
 
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase

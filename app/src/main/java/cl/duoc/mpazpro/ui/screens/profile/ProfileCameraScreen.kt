@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import cl.duoc.mpazpro.data.local.preferences.PerfilEstudianteManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -84,9 +85,9 @@ fun ProfileCameraScreen(
     var tamanoFotoDp by remember { mutableFloatStateOf(160f) }
     var usarEscalaCrop by remember { mutableStateOf(true) }
 
-    var nombreEstudiante by remember { mutableStateOf(cl.duoc.mpazpro.data.local.PerfilEstudianteManager.obtenerNombre(context)) }
-    var apellidoEstudiante by remember { mutableStateOf(cl.duoc.mpazpro.data.local.PerfilEstudianteManager.obtenerApellido(context)) }
-    var cursoEstudiante by remember { mutableStateOf(cl.duoc.mpazpro.data.local.PerfilEstudianteManager.obtenerCurso(context)) }
+    var nombreEstudiante by remember { mutableStateOf(PerfilEstudianteManager.obtenerNombre(context)) }
+    var apellidoEstudiante by remember { mutableStateOf(PerfilEstudianteManager.obtenerApellido(context)) }
+    var cursoEstudiante by remember { mutableStateOf(PerfilEstudianteManager.obtenerCurso(context)) }
 
     // Launcher de captura de imagen (Retorna Bitmap en memoria)
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -300,7 +301,7 @@ fun ProfileCameraScreen(
 
                     Button(
                         onClick = {
-                            cl.duoc.mpazpro.data.local.PerfilEstudianteManager.guardarPerfil(
+                            PerfilEstudianteManager.guardarPerfil(
                                 context = context,
                                 nombre = nombreEstudiante,
                                 apellido = apellidoEstudiante,

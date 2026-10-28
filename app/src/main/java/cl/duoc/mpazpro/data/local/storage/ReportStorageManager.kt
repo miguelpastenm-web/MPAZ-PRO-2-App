@@ -1,4 +1,4 @@
-package cl.duoc.mpazpro.data.local
+package cl.duoc.mpazpro.data.local.storage
 
 import android.content.Context
 import android.net.Uri
@@ -9,7 +9,7 @@ import java.util.Date
 import java.util.Locale
 import org.json.JSONObject
 import org.json.JSONArray
-import cl.duoc.mpazpro.data.local.entities.ResultadoPruebaEntity
+import cl.duoc.mpazpro.data.local.database.entities.ResultadoPruebaEntity
 
 /**
  * Gestor utilitario de almacenamiento interno y exportacion de archivos
