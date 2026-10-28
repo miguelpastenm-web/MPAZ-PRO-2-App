@@ -34,15 +34,12 @@ import androidx.compose.material.icons.filled.Event
 import cl.duoc.mpazpro.ui.components.CustomValidatedField
 import cl.duoc.mpazpro.viewmodel.TeacherFormViewModel
 import androidx.compose.ui.platform.LocalContext
-import cl.duoc.mpazpro.data.local.database.AppDatabase
-import cl.duoc.mpazpro.data.local.preferences.ConfiguracionEvaluacion
-import cl.duoc.mpazpro.data.local.preferences.EvaluacionConfig
-import cl.duoc.mpazpro.data.local.database.entities.DocenteEntity
-import cl.duoc.mpazpro.data.repository.AppRepository
-import kotlinx.coroutines.launch
 
 /**
- * Pantalla de Formulario Docente con validacion desacoplada y soporte visual
+ * Pantalla de Formulario Docente con validacion desacoplada y soporte visual.
+ *
+ * MVVM: La pantalla solo interactúa con TeacherFormViewModel, sin acceso directo
+ * a ConfiguracionEvaluacion, AppDatabase o AppRepository.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,10 +51,6 @@ fun TeacherFormScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    val coroutineScope = rememberCoroutineScope()
-    val repository = remember(context) {
-        AppRepository(AppDatabase.getDatabase(context))
-    }
 
     // Selector interactivo de fecha nativo de Android
     val calendario = remember { Calendar.getInstance() }
@@ -80,32 +73,6 @@ fun TeacherFormScreen(
         "Ciencias Naturales",
         "Historia y Geografía"
     )
-
-    fun seleccionarAsignatura(materia: String) {
-        viewModel.onAsignaturaChange(materia)
-        ConfiguracionEvaluacion.obtenerParametros(context, materia)?.let { guardada ->
-            viewModel.cargarConfiguracionPrevia(
-                nombre = guardada.docente,
-                codigo = guardada.codigoDocente,
-                intentos = guardada.maxIntentos.toString(),
-                fecha = guardada.fechaLimite,
-                pistas = guardada.permitirPistas
-            )
-        }
-    }
-
-    // Al iniciar, si ya hay una evaluación guardada para la asignatura seleccionada, cargarla
-    LaunchedEffect(Unit) {
-        ConfiguracionEvaluacion.obtenerParametros(context, uiState.asignatura)?.let { guardada ->
-            viewModel.cargarConfiguracionPrevia(
-                nombre = guardada.docente,
-                codigo = guardada.codigoDocente,
-                intentos = guardada.maxIntentos.toString(),
-                fecha = guardada.fechaLimite,
-                pistas = guardada.permitirPistas
-            )
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -168,7 +135,7 @@ fun TeacherFormScreen(
                 asignaturas.take(2).forEach { asignatura ->
                     FilterChip(
                         selected = uiState.asignatura == asignatura,
-                        onClick = { seleccionarAsignatura(asignatura) },
+                        onClick = { viewModel.onAsignaturaChange(asignatura) },
                         label = { Text(asignatura, style = MaterialTheme.typography.bodySmall) }
                     )
                 }
@@ -180,7 +147,7 @@ fun TeacherFormScreen(
                 asignaturas.drop(2).forEach { asignatura ->
                     FilterChip(
                         selected = uiState.asignatura == asignatura,
-                        onClick = { seleccionarAsignatura(asignatura) },
+                        onClick = { viewModel.onAsignaturaChange(asignatura) },
                         label = { Text(asignatura, style = MaterialTheme.typography.bodySmall) }
                     )
                 }
@@ -366,32 +333,9 @@ fun TeacherFormScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Boton Principal de Guardar
+            // Boton Principal de Guardar - toda la persistencia la maneja el ViewModel
             Button(
-                onClick = {
-                    if (viewModel.validarYGuardar()) {
-                        val config = EvaluacionConfig(
-                            asignatura = uiState.asignatura,
-                            docente = uiState.nombreDocente,
-                            codigoDocente = uiState.codigoDocente,
-                            maxIntentos = uiState.maxIntentos.toIntOrNull() ?: 1,
-                            fechaLimite = uiState.fechaLimite,
-                            permitirPistas = uiState.permitirPistas
-                        )
-                        ConfiguracionEvaluacion.guardarParametros(context, config)
-
-                        // Persistencia activa en Room (Tabla docentes)
-                        coroutineScope.launch {
-                            repository.insertarDocente(
-                                DocenteEntity(
-                                    nombre = uiState.nombreDocente,
-                                    correoFicticio = uiState.codigoDocente,
-                                    asignatura = uiState.asignatura
-                                )
-                            )
-                        }
-                    }
-                },
+                onClick = { viewModel.validarYGuardar() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp)

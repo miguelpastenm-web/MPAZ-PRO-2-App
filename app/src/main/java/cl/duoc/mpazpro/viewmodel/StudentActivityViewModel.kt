@@ -1,10 +1,13 @@
 
 package cl.duoc.mpazpro.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import cl.duoc.mpazpro.data.local.database.AppDatabase
 import cl.duoc.mpazpro.data.local.database.entities.ActividadEntity
 import cl.duoc.mpazpro.data.local.database.entities.ResultadoPruebaEntity
+import cl.duoc.mpazpro.data.local.preferences.ConfiguracionEvaluacion
 import cl.duoc.mpazpro.data.repository.AppRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,10 +23,26 @@ import kotlinx.coroutines.launch
  *
  * También administra los estados de carga y guardado
  * para que la pantalla pueda mostrar los cambios.
+ *
+ * Centraliza el acceso a ConfiguracionEvaluacion para que
+ * la pantalla no dependa directamente de la capa de datos.
  */
 class StudentActivityViewModel(
+    application: Application,
     private val repository: AppRepository
-) : ViewModel() {
+) : AndroidViewModel(application) {
+
+    /**
+     * Constructor secundario que inicializa el repositorio mediante Room.
+     * Permite que la pantalla UI instancie el ViewModel directamente sin
+     * importar Room ni el Repositorio.
+     */
+    constructor(application: Application) : this(
+        application,
+        AppRepository(AppDatabase.getDatabase(application.applicationContext))
+    )
+
+    private val context = application.applicationContext
 
     // Guardamos las actividades obtenidas desde la base de datos.
     // La pantalla puede observarlas, pero no modificarlas directamente.
@@ -105,28 +124,31 @@ class StudentActivityViewModel(
     }
 
     /**
-     * Reúne las cuatro alternativas de una actividad.
-     *
-     * shuffled() mezcla su orden para que la respuesta
-     * correcta no aparezca siempre en la misma posición.
+     * Consulta si las pistas están permitidas para una asignatura específica.
+     * Centraliza la lectura de SharedPreferences para que la pantalla no acceda a ConfiguracionEvaluacion.
      */
-    fun obtenerAlternativas(
-        actividad: ActividadEntity
-    ): List<String> {
-        return listOf(
-            actividad.respuestaCorrecta,
-            actividad.alternativaIncorrecta1,
-            actividad.alternativaIncorrecta2,
-            actividad.alternativaIncorrecta3
-        ).shuffled()
+    fun obtenerPermitirPistas(asignatura: String): Boolean {
+        return if (asignatura.isNotEmpty()) {
+            ConfiguracionEvaluacion.obtenerPistasPorMateria(context, asignatura)
+        } else {
+            ConfiguracionEvaluacion.obtenerPistas(context)
+        }
     }
 
-    // Comprueba si la respuesta elegida es la correcta.
-    fun verificarRespuesta(
-        actividad: ActividadEntity,
-        respuesta: String
-    ): Boolean {
-        return respuesta == actividad.respuestaCorrecta
+    /**
+     * Obtiene la configuración de evaluación para una asignatura en formato UI.
+     * Centraliza la lectura de SharedPreferences para que la pantalla no acceda a la capa data.
+     */
+    fun obtenerConfiguracionMateria(asignatura: String): EvaluacionConfigUi? {
+        val config = ConfiguracionEvaluacion.obtenerParametros(context, asignatura) ?: return null
+        return EvaluacionConfigUi(
+            asignatura = config.asignatura,
+            docente = config.docente,
+            codigoDocente = config.codigoDocente,
+            maxIntentos = config.maxIntentos,
+            fechaLimite = config.fechaLimite,
+            permitirPistas = config.permitirPistas
+        )
     }
 
     /**
@@ -225,3 +247,4 @@ class StudentActivityViewModel(
         _mensajeError.value = null
     }
 }
+

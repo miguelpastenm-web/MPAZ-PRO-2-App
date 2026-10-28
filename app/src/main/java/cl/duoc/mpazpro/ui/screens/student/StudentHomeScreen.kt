@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Forest
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.Info
@@ -25,7 +24,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,11 +32,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
-import android.graphics.BitmapFactory
-import java.io.File
-import cl.duoc.mpazpro.data.local.preferences.ConfiguracionEvaluacion
-import cl.duoc.mpazpro.data.local.preferences.EvaluacionConfig
-import cl.duoc.mpazpro.data.local.preferences.PerfilEstudianteManager
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import cl.duoc.mpazpro.viewmodel.EvaluacionConfigUi
+import cl.duoc.mpazpro.viewmodel.StudentHomeViewModel
 
 /**
  * Modelo de datos inmutable para representar una materia escolar.
@@ -59,17 +56,20 @@ data class MateriaItem(
  * 1. Presentar de forma amigable y ordenada las 4 asignaturas del currículum.
  * 2. Conectar y reflejar los parámetros de evaluación fijados por el docente (fecha, docente, intentos).
  * 3. Acceder a la credencial y perfil escolar del propio estudiante.
- * 4. Desacoplamiento total: no conoce NavController, solo emite callbacks.
+ * 4. Desacoplamiento total: no conoce NavController ni la capa data/local, solo emite callbacks.
+ *
+ * MVVM: La pantalla solo interactúa con StudentHomeViewModel.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentHomeScreen(
     onBack: () -> Unit,
     onSelectMateria: (Int) -> Unit,
-    onNavigateToProfile: () -> Unit
+    onNavigateToProfile: () -> Unit,
+    homeViewModel: StudentHomeViewModel = viewModel()
 ) {
-    val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
 
     // Las 4 asignaturas oficiales de 2.° Básico según el caso Marcela Paz
     val materias = listOf(
@@ -115,14 +115,6 @@ fun StudentHomeScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = onNavigateToProfile) {
-                        Icon(
-                            imageVector = Icons.Default.CameraAlt,
-                            contentDescription = "Mi Credencial y Perfil Escolar"
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -138,22 +130,8 @@ fun StudentHomeScreen(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            val nombreCompleto = remember(context) {
-                PerfilEstudianteManager.obtenerNombreCompleto(context)
-            }
-            val cursoEstudiante = remember(context) {
-                PerfilEstudianteManager.obtenerCurso(context)
-            }
-            val avatarBitmap = remember(context) {
-                runCatching {
-                    val file = File(context.filesDir, "avatar_perfil.png")
-                    if (file.exists()) BitmapFactory.decodeFile(file.absolutePath) else null
-                }.getOrNull()
-            }
-
-            // Tarjeta de Bienvenida y Motivación Pedagógica (Clickeable para ver/editar perfil)
+            // Tarjeta de Bienvenida y Motivación Pedagógica
             Card(
-                onClick = onNavigateToProfile,
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
                 ),
@@ -164,10 +142,10 @@ fun StudentHomeScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (avatarBitmap != null) {
+                    if (uiState.avatarBitmap != null) {
                         Image(
-                            bitmap = avatarBitmap.asImageBitmap(),
-                            contentDescription = "Avatar de $nombreCompleto",
+                            bitmap = uiState.avatarBitmap!!.asImageBitmap(),
+                            contentDescription = "Avatar de ${uiState.nombreCompleto}",
                             modifier = Modifier
                                 .size(50.dp)
                                 .clip(CircleShape)
@@ -182,15 +160,15 @@ fun StudentHomeScreen(
                         )
                     }
                     Spacer(modifier = Modifier.width(14.dp))
-                    Column(modifier = Modifier.weight(1f)) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = "¡Hola, $nombreCompleto!",
+                            text = "¡Hola, ${uiState.nombreCompleto}!",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "$cursoEstudiante - Escuela Marcela Paz",
+                            text = "${uiState.curso} - Escuela Marcela Paz",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.secondary
                         )
@@ -201,20 +179,12 @@ fun StudentHomeScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Icon(
-                        imageVector = Icons.Default.CameraAlt,
-                        contentDescription = "Editar credencial",
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                        modifier = Modifier.size(22.dp)
-                    )
                 }
             }
 
-            // Listado de Tarjetas por Materia (conectadas a la configuración docente)
+            // Listado de Tarjetas por Materia (conectadas a la configuración docente via ViewModel)
             materias.forEach { materia ->
-                val config = remember(materia.nombre) {
-                    ConfiguracionEvaluacion.obtenerParametros(context, materia.nombre)
-                }
+                val config = homeViewModel.obtenerConfiguracion(materia.nombre)
 
                 MateriaCard(
                     materia = materia,
@@ -261,7 +231,7 @@ fun StudentHomeScreen(
 @Composable
 private fun MateriaCard(
     materia: MateriaItem,
-    config: EvaluacionConfig?,
+    config: EvaluacionConfigUi?,
     onClick: () -> Unit
 ) {
     Card(

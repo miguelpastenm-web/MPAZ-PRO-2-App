@@ -19,7 +19,7 @@ Aplicación móvil Android desarrollada en **Kotlin y Jetpack Compose** para el 
 
 ## Planificación y Gestión del Proyecto
 
-El proyecto se desarrolla mediante una metodología de trabajo colaborativo, utilizando herramientas de planificación y control de versiones conforme al indicador IE 2.3.2.
+El proyecto se desarrolla mediante una metodología de trabajo colaborativo, utilizando herramientas de planificación y control de versiones 
 
 - **Tablero de Planificación (Trello):** [Tablero Trello - MPAZ PRO DSY1105](https://trello.com/b/M2z1OkvY/mpaz-pro-dsy1105)
 - **Repositorio GitHub:** [MPAZ PRO 2 App](https://github.com/miguelpastenm-web/MPAZ-PRO-2-App)
@@ -287,13 +287,17 @@ cl.duoc.mpazpro
 │
 ├── data
 │   ├── local
-│   │   ├── dao
-│   │   ├── entities
-│   │   ├── AppDatabase.kt
-│   │   ├── DatabaseMigrations.kt
-│   │   ├── DatosInicialesCallback.kt
-│   │   ├── ConfiguracionEvaluacion.kt
-│   │   └── ReportStorageManager.kt
+│   │   ├── database
+│   │   │   ├── dao/
+│   │   │   ├── entities/
+│   │   │   ├── AppDatabase.kt
+│   │   │   ├── DatabaseMigrations.kt
+│   │   │   └── DatosInicialesCallback.kt
+│   │   ├── preferences
+│   │   │   ├── ConfiguracionEvaluacion.kt
+│   │   │   └── PerfilEstudianteManager.kt
+│   │   └── storage
+│   │       └── ReportStorageManager.kt
 │   │
 │   └── repository
 │       └── AppRepository.kt
@@ -301,6 +305,8 @@ cl.duoc.mpazpro
 ├── ui
 │   ├── components
 │   ├── navigation
+│   │   ├── AppNavigation.kt
+│   │   └── AppScreens.kt
 │   ├── screens
 │   │   ├── admin
 │   │   ├── student
@@ -308,10 +314,13 @@ cl.duoc.mpazpro
 │   └── theme
 │
 ├── viewmodel
+│   ├── ExportReportViewModel.kt
+│   ├── ProfileViewModel.kt
 │   ├── StudentActivityViewModel.kt
 │   ├── StudentActivityViewModelFactory.kt
-│   ├── TeacherFormViewModel.kt
-│   └── TeacherFormUiState.kt
+│   ├── StudentHomeViewModel.kt
+│   ├── TeacherFormUiState.kt
+│   └── TeacherFormViewModel.kt
 │
 └── MainActivity.kt
 ```

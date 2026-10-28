@@ -17,67 +17,37 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import cl.duoc.mpazpro.data.local.database.AppDatabase
-import cl.duoc.mpazpro.data.local.preferences.PerfilEstudianteManager
-import cl.duoc.mpazpro.data.local.storage.ReportStorageManager
-import kotlinx.coroutines.launch
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import cl.duoc.mpazpro.viewmodel.ExportReportViewModel
 
 /**
  * Pantalla simplificada y unificada para la generación y exportación del Reporte Académico del Estudiante.
  *
  * Consolida todas las evaluaciones reales rendidas en Segundo Básico sin precargas artificiales.
  * Permite persistencia interna segura (context.filesDir) y exportación mediante SAF.
+ *
+ * MVVM: La pantalla solo interactúa con ExportReportViewModel, sin acceso directo a la capa de datos.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExportReportScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    viewModel: ExportReportViewModel = viewModel()
 ) {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-
-    val database = remember(context) { AppDatabase.getDatabase(context) }
-    val resultadoDao = remember(database) { database.resultadoPruebaDao() }
-
-    val resultados by resultadoDao.obtenerTodos().collectAsState(initial = emptyList())
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val resultados by viewModel.resultados.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
-
-    val nombreEstudiante = remember(context) { PerfilEstudianteManager.obtenerNombreCompleto(context) }
-    val cursoEstudiante = remember(context) { PerfilEstudianteManager.obtenerCurso(context) }
-
-    var nombreArchivo by remember { mutableStateOf("reporte_academico_2basico.json") }
-    var mensajeResultado by remember { mutableStateOf<String?>(null) }
-    var esError by remember { mutableStateOf(false) }
-    var rutaFisicaReciente by remember { mutableStateOf<String?>(null) }
-
-    fun generarReporte(): String {
-        return ReportStorageManager.generarReporteAcademicoEstudiante(
-            context = context,
-            nombreEstudiante = nombreEstudiante,
-            curso = cursoEstudiante,
-            resultados = resultados
-        )
-    }
 
     // Launcher de SAF para guardar en ubicación elegida por el usuario
     val safLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri: Uri? ->
         if (uri != null) {
-            val contenido = generarReporte()
-            val resultado = ReportStorageManager.exportarConSAF(context, uri, contenido)
-            if (resultado.isSuccess && resultado.getOrDefault(false)) {
-                mensajeResultado = "Reporte académico descargado y exportado exitosamente mediante SAF."
-                esError = false
-                rutaFisicaReciente = uri.toString()
-            } else {
-                mensajeResultado = "Error al exportar archivo mediante SAF."
-                esError = true
-            }
+            viewModel.exportarConSAF(uri)
         }
     }
 
@@ -173,14 +143,14 @@ fun ExportReportScreen(
                     }
 
                     Text(
-                        text = nombreEstudiante,
+                        text = uiState.nombreEstudiante,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
 
                     Text(
-                        text = "$cursoEstudiante - Escuela Marcela Paz (San Bernardo)",
+                        text = "${uiState.cursoEstudiante} - Escuela Marcela Paz (San Bernardo)",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
@@ -189,13 +159,7 @@ fun ExportReportScreen(
                     if (resultados.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(4.dp))
                         OutlinedButton(
-                            onClick = {
-                                coroutineScope.launch {
-                                    resultadoDao.borrarTodos()
-                                    mensajeResultado = "Base de datos de evaluaciones vaciada correctamente."
-                                    esError = false
-                                }
-                            },
+                            onClick = { viewModel.vaciarEvaluaciones() },
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error
                             ),
@@ -228,8 +192,8 @@ fun ExportReportScreen(
                     )
 
                     OutlinedTextField(
-                        value = nombreArchivo,
-                        onValueChange = { nombreArchivo = it },
+                        value = uiState.nombreArchivo,
+                        onValueChange = { viewModel.onNombreArchivoChange(it) },
                         label = { Text("Nombre del Archivo") },
                         leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) },
                         modifier = Modifier.fillMaxWidth()
@@ -237,23 +201,7 @@ fun ExportReportScreen(
 
                     // Botón 1: Guardado en Almacenamiento Interno Privado (context.filesDir)
                     Button(
-                        onClick = {
-                            val contenido = generarReporte()
-                            val resultado = ReportStorageManager.guardarEnAlmacenamientoInterno(
-                                context = context,
-                                nombreArchivo = nombreArchivo,
-                                contenido = contenido
-                            )
-                            if (resultado.isSuccess) {
-                                val archivo = resultado.getOrThrow()
-                                mensajeResultado = "Reporte académico guardado con éxito en memoria interna privada."
-                                esError = false
-                                rutaFisicaReciente = archivo.absolutePath
-                            } else {
-                                mensajeResultado = "Error al escribir en almacenamiento interno: ${resultado.exceptionOrNull()?.message}"
-                                esError = true
-                            }
-                        },
+                        onClick = { viewModel.guardarEnAlmacenamientoInterno() },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp)
@@ -266,7 +214,7 @@ fun ExportReportScreen(
                     // Botón 2: Exportación externa mediante SAF (Storage Access Framework)
                     OutlinedButton(
                         onClick = {
-                            safLauncher.launch(nombreArchivo)
+                            safLauncher.launch(uiState.nombreArchivo)
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -281,43 +229,43 @@ fun ExportReportScreen(
 
             // Banner animado de confirmación y ruta física
             AnimatedVisibility(
-                visible = mensajeResultado != null,
+                visible = uiState.mensajeResultado != null,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = if (esError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
+                        containerColor = if (uiState.esError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = if (esError) Icons.Default.Error else Icons.Default.CheckCircle,
+                                imageVector = if (uiState.esError) Icons.Default.Error else Icons.Default.CheckCircle,
                                 contentDescription = null,
-                                tint = if (esError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                tint = if (uiState.esError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = mensajeResultado ?: "",
+                                text = uiState.mensajeResultado ?: "",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = if (esError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
+                                color = if (uiState.esError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
 
-                        if (rutaFisicaReciente != null) {
+                        if (uiState.rutaFisicaReciente != null) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Ruta física / URI de persistencia:",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = if (esError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
+                                color = if (uiState.esError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Text(
-                                text = rutaFisicaReciente ?: "",
+                                text = uiState.rutaFisicaReciente ?: "",
                                 style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                                color = if (esError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
+                                color = if (uiState.esError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
