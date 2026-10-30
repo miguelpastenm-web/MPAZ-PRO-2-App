@@ -1,4 +1,4 @@
-package cl.duoc.mpazpro.viewmodel
+package cl.duoc.mpazpro.viewmodel.teacher
 
 /**
  * Estado inmutable de la interfaz del formulario docente

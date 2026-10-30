@@ -308,19 +308,25 @@ cl.duoc.mpazpro
 │   │   ├── AppNavigation.kt
 │   │   └── AppScreens.kt
 │   ├── screens
-│   │   ├── admin
 │   │   ├── student
-│   │   └── profile
+│   │   │   ├── ProfileCameraScreen.kt
+│   │   │   ├── StudentActivityScreen.kt
+│   │   │   └── StudentHomeScreen.kt
+│   │   └── teacher
+│   │       ├── ExportReportScreen.kt
+│   │       └── TeacherFormScreen.kt
 │   └── theme
 │
 ├── viewmodel
-│   ├── ExportReportViewModel.kt
-│   ├── ProfileViewModel.kt
-│   ├── StudentActivityViewModel.kt
-│   ├── StudentActivityViewModelFactory.kt
-│   ├── StudentHomeViewModel.kt
-│   ├── TeacherFormUiState.kt
-│   └── TeacherFormViewModel.kt
+│   ├── student
+│   │   ├── ProfileViewModel.kt
+│   │   ├── StudentActivityViewModel.kt
+│   │   ├── StudentActivityViewModelFactory.kt
+│   │   └── StudentHomeViewModel.kt
+│   └── teacher
+│       ├── ExportReportViewModel.kt
+│       ├── TeacherFormUiState.kt
+│       └── TeacherFormViewModel.kt
 │
 └── MainActivity.kt
 ```

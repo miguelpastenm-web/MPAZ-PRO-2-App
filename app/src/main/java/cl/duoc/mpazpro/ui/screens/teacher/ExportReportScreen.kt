@@ -1,4 +1,4 @@
-package cl.duoc.mpazpro.ui.screens.admin
+package cl.duoc.mpazpro.ui.screens.teacher
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import cl.duoc.mpazpro.viewmodel.ExportReportViewModel
+import cl.duoc.mpazpro.viewmodel.teacher.ExportReportViewModel
 
 /**
  * Pantalla simplificada y unificada para la generación y exportación del Reporte Académico del Estudiante.

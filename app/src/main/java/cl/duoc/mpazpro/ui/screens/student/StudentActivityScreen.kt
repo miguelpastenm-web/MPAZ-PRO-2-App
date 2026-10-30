@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import cl.duoc.mpazpro.viewmodel.StudentActivityViewModel
+import cl.duoc.mpazpro.viewmodel.student.StudentActivityViewModel
 
 
 /**

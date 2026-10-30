@@ -1,4 +1,4 @@
-package cl.duoc.mpazpro.ui.screens.profile
+package cl.duoc.mpazpro.ui.screens.student
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import cl.duoc.mpazpro.viewmodel.ProfileViewModel
+import cl.duoc.mpazpro.viewmodel.student.ProfileViewModel
 import cl.duoc.mpazpro.ui.theme.AzulInstitucional
 
 /**

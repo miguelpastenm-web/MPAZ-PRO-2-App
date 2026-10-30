@@ -1,4 +1,4 @@
-package cl.duoc.mpazpro.viewmodel
+package cl.duoc.mpazpro.viewmodel.teacher
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

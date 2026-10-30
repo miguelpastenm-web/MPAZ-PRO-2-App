@@ -31,11 +31,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import cl.duoc.mpazpro.ui.screens.admin.ExportReportScreen
-import cl.duoc.mpazpro.ui.screens.profile.ProfileCameraScreen
-import cl.duoc.mpazpro.ui.screens.admin.TeacherFormScreen
+import cl.duoc.mpazpro.ui.screens.student.ProfileCameraScreen
 import cl.duoc.mpazpro.ui.screens.student.StudentActivityScreen
 import cl.duoc.mpazpro.ui.screens.student.StudentHomeScreen
+import cl.duoc.mpazpro.ui.screens.teacher.ExportReportScreen
+import cl.duoc.mpazpro.ui.screens.teacher.TeacherFormScreen
 
 /**
  * Grafo centralizado de navegacion con transiciones fluidas

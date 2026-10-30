@@ -1,4 +1,4 @@
-package cl.duoc.mpazpro.ui.screens.admin
+package cl.duoc.mpazpro.ui.screens.teacher
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -32,7 +32,7 @@ import android.app.DatePickerDialog
 import java.util.Calendar
 import androidx.compose.material.icons.filled.Event
 import cl.duoc.mpazpro.ui.components.CustomValidatedField
-import cl.duoc.mpazpro.viewmodel.TeacherFormViewModel
+import cl.duoc.mpazpro.viewmodel.teacher.TeacherFormViewModel
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import cl.duoc.mpazpro.ui.theme.AzulInstitucional

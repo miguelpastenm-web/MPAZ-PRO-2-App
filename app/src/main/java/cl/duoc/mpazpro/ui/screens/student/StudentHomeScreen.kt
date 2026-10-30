@@ -35,8 +35,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import cl.duoc.mpazpro.viewmodel.EvaluacionConfigUi
-import cl.duoc.mpazpro.viewmodel.StudentHomeViewModel
+import cl.duoc.mpazpro.viewmodel.student.EvaluacionConfigUi
+import cl.duoc.mpazpro.viewmodel.student.StudentHomeViewModel
 import cl.duoc.mpazpro.ui.theme.AzulInstitucional
 
 /**
