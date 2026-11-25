@@ -88,21 +88,27 @@ fun StudentActivityScreen(
         studentViewModel.obtenerPermitirPistas(asignaturaSeleccionada)
     }
 
-    // Si se pasa un oaId específico (> 0), recarga solo las actividades de esa materia
+    // La ruta conserva el identificador local de la asignatura.
     LaunchedEffect(oaId) {
         studentViewModel.cargarActividades(if (oaId > 0) oaId else null)
     }
     // Observamos los StateFlow del ViewModel.
     // La interfaz se actualiza cuando cambian sus valores,
     // respetando el ciclo de vida de la pantalla.
-    val actividadesRoom by studentViewModel.actividades
+    val preguntasCargadas by studentViewModel.actividades
         .collectAsStateWithLifecycle()
 
-    val cargandoRoom by studentViewModel.estaCargando
+    val cargandoActividades by studentViewModel.estaCargando
         .collectAsStateWithLifecycle()
 
-    val errorRoom by studentViewModel.mensajeError
+    val mensajeError by studentViewModel.mensajeError
         .collectAsStateWithLifecycle()
+
+    val avisoContenidos by studentViewModel.avisoContenidos.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(avisoContenidos) {
+        avisoContenidos?.let { snackbarHostState.showSnackbar(it) }
+    }
 
     // Observamos el estado del guardado de los resultados.
     val guardandoResultados by studentViewModel.guardandoResultados
@@ -112,18 +118,18 @@ fun StudentActivityScreen(
         .collectAsStateWithLifecycle()
 
 
-    // Adaptamos los registros de Room al modelo de la pantalla.
-    // Mezclamos las cuatro alternativas y calculamos la
+    // Adaptamos las preguntas cargadas al modelo de la pantalla.
+    // Mezclamos las alternativas disponibles y calculamos la
     // posición correcta después de cambiar su orden.
-    val actividadesConvertidas = remember(actividadesRoom) {
-        actividadesRoom.map { actividad ->
+    val actividadesConvertidas = remember(preguntasCargadas) {
+        preguntasCargadas.map { actividad ->
 
             val opciones = listOf(
                 actividad.respuestaCorrecta,
                 actividad.alternativaIncorrecta1,
                 actividad.alternativaIncorrecta2,
                 actividad.alternativaIncorrecta3
-            ).shuffled()
+            ).filter { it.isNotBlank() }.distinct().shuffled()
 
             ActividadDidactica(
                 id = actividad.id,
@@ -141,9 +147,9 @@ fun StudentActivityScreen(
         }
     }
 
-    // Usamos las preguntas de Room cuando terminan de cargar.
+    // Usamos las preguntas cuando terminan de cargar.
     // Mientras tanto, mantenemos la lista vacía.
-    val actividades = if (cargandoRoom || errorRoom != null) {
+    val actividades = if (cargandoActividades || mensajeError != null) {
         emptyList()
     } else {
         actividadesConvertidas
@@ -228,6 +234,7 @@ fun StudentActivityScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Mi Actividad - 2.º Básico") },
@@ -260,7 +267,7 @@ fun StudentActivityScreen(
 
         {
             // Animacion 1: Loader dinamico mientras se cargan las actividades
-            if (estaCargando || cargandoRoom) {
+            if (estaCargando || cargandoActividades) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
@@ -278,13 +285,18 @@ fun StudentActivityScreen(
                     )
                 }
 
-            } else if (errorRoom != null || actividadActual == null) {
-                Text(
-                    text = errorRoom ?: "No hay actividades disponibles.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(24.dp)
-                )
+            } else if (mensajeError != null || actividadActual == null) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = mensajeError ?: "No hay actividades disponibles.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(24.dp)
+                    )
+                    TextButton(onClick = {
+                        studentViewModel.cargarActividades(oaId.takeIf { it > 0 })
+                    }) { Text("Volver a consultar") }
+                }
             } else {
                 Column(
 

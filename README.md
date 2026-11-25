@@ -1,4 +1,4 @@
-# MPAZ PRO 2.º - Aplicación Móvil de Apoyo Didáctico
+# MPAZ PRO 2.0 — Aplicación móvil de apoyo didáctico
 
 Aplicación móvil Android desarrollada en **Kotlin y Jetpack Compose** para el apoyo pedagógico, la realización de actividades didácticas y el seguimiento de resultados por Objetivos de Aprendizaje (OA) en Segundo Básico de la Escuela Escritora Marcela Paz, ubicada en San Bernardo.
 
@@ -19,10 +19,10 @@ Aplicación móvil Android desarrollada en **Kotlin y Jetpack Compose** para el 
 
 ## Planificación y Gestión del Proyecto
 
-El proyecto se desarrolla mediante una metodología de trabajo colaborativo, utilizando herramientas de planificación y control de versiones 
+El proyecto se desarrolla mediante una metodología de trabajo colaborativo, utilizando herramientas de planificación y control de versiones.
 
 - **Tablero de Planificación (Trello):** [Tablero Trello - MPAZ PRO DSY1105](https://trello.com/b/M2z1OkvY/mpaz-pro-dsy1105)
-- **Repositorio GitHub:** [MPAZ PRO 2 App](https://github.com/miguelpastenm-web/MPAZ-PRO-2-App)
+- **Repositorio Android:** [MPAZ PRO 2 App](https://github.com/miguelpastenm-web/MPAZ-PRO-2-App)
 - **Estrategia de Versionamiento:** Flujo de trabajo mediante ramas independientes, commits descriptivos e integración de cambios.
 - **Convención de Commits:** Uso de prefijos como `feat`, `fix`, `chore`, `docs` y `refactor`.
 
@@ -45,11 +45,11 @@ En el escenario planteado, las actividades y evaluaciones de las asignaturas pri
 
 ### Solución Desarrollada (MVP)
 
-**MPAZ PRO 2.º** propone una solución móvil que permite consultar actividades didácticas, responder preguntas de selección múltiple, recibir retroalimentación inmediata y almacenar resultados por Objetivo de Aprendizaje.
+**MPAZ PRO 2.0** propone una solución móvil que permite consultar actividades didácticas, responder preguntas de selección múltiple, recibir retroalimentación inmediata y almacenar resultados por Objetivo de Aprendizaje.
 
 La aplicación incorpora formularios para configurar parámetros de evaluación, mecanismos de apoyo pedagógico, reportes de resultados y acceso a recursos nativos del dispositivo.
 
-Su funcionamiento principal es local, utilizando **Room Database, SQLite y SharedPreferences**, sin requerir servicios externos para realizar actividades o consultar los datos almacenados.
+La app conserva los parámetros, los resultados de las evaluaciones y las actividades precargadas en el dispositivo. Utiliza microservicios locales para el catálogo curricular y el historial remoto, y consulta Dog CEO para la actividad de observación de perros.
 
 Para fines académicos y de demostración, se utilizan actividades precargadas e identificadores de estudiantes simulados.
 
@@ -67,25 +67,24 @@ El proyecto contempla tres perfiles dentro del contexto del sistema:
 
 - **Lenguaje de programación:** Kotlin.
 - **Plataforma:** Android.
-- **SDK mínimo:** API 26 (Android 8.0).
-- **Interfaz de usuario:** Jetpack Compose y Material Design 3.
+- **SDK de Android.** API 35 para compilar y como destino. API 26 (Android 8.0) como mínimo.
+- **Interfaz de usuario.** Jetpack Compose, Material 3 y Navigation Compose.
 - **Arquitectura:** MVVM (Model-View-ViewModel) con separación de responsabilidades.
-- **Persistencia local:** Room Database y SQLite.
+- **Persistencia local.** Room sobre SQLite, con KSP para generar las implementaciones.
 - **Preferencias locales:** SharedPreferences.
-- **Gestión de estados:** StateFlow y MutableStateFlow.
+- **Estado de la interfaz.** AndroidX Lifecycle y ViewModel con `StateFlow`.
 - **Concurrencia:** Kotlin Coroutines.
-- **Consumo de API REST:** Retrofit 2 con convertidor Gson.
+- **Red.** Retrofit 2.11 con Gson y OkHttp.
 - **Backend local:** Spring Boot 3 (Java 17) con H2, repositorio [mpaz-backend](https://github.com/miguelpastenm-web/mpaz-backend).
-- **Pruebas unitarias:** Kotest, MockK y kotlinx-coroutines-test sobre JUnit Platform.
+- **Pruebas.** JUnit 4 y JUnit 5, Kotest, MockK y kotlinx-coroutines-test. El módulo declara AndroidX Test, Espresso y Compose UI Test para las pruebas instrumentadas.
 - **Cobertura:** JaCoCo (reporte de Android Gradle Plugin).
-- **Distribución:** APK release firmado con keystore `.jks`.
 - **Acceso a datos:** DAO y patrón Repository.
 - **Animaciones:** AnimatedVisibility, transiciones Fade/Slide y animateContentSize.
 - **Recursos nativos:** Cámara del dispositivo y Storage Access Framework (SAF).
 - **Control de versiones:** Git y GitHub.
 - **Planificación del trabajo:** Trello.
 - **Entorno de desarrollo:** Android Studio.
-- **JDK:** Java 17.
+- **Compilación.** JDK 17, Gradle Wrapper 8.13 y Android Gradle Plugin 8.13.1. Las versiones de las dependencias están en [gradle/libs.versions.toml](gradle/libs.versions.toml).
 
 ---
 
@@ -100,9 +99,7 @@ La aplicación incorpora actividades didácticas para cuatro asignaturas de Segu
 - Ciencias Naturales.
 - Historia y Geografía.
 
-Las actividades se almacenan en Room y están relacionadas con Objetivos de Aprendizaje.
-
-Actualmente se dispone de **ocho actividades precargadas**, utilizadas para demostrar el funcionamiento de las evaluaciones.
+Room incluye **ocho actividades precargadas** asociadas a objetivos de aprendizaje. En **Panel Docente / UTP → Gestionar objetivos y actividades**, el docente puede listar, crear, editar y eliminar los objetivos de la asignatura seleccionada y las actividades de cada objetivo. También puede cambiar la autorización del objetivo. El catálogo se guarda en `ms-contenidos`.
 
 ### 2. Formularios con Validaciones Desacopladas
 
@@ -129,16 +126,16 @@ Se implementaron las siguientes verificaciones:
 
 Cuando existen errores, los campos muestran mensajes específicos e indicadores visuales. Cuando los datos son válidos, aparece una confirmación mediante una animación.
 
-**Nota:** El máximo de intentos se valida y configura en el formulario docente, pero su aplicación como restricción efectiva sobre las evaluaciones del estudiante queda pendiente de integración.
+El máximo de intentos se aplica al estudiante simulado cuando hay parámetros guardados para la asignatura. La fecha límite se valida al guardar el formulario y se muestra al estudiante.
 
 ### 3. Actividades Interactivas para Estudiantes
 
-La pantalla `StudentActivityScreen` obtiene las actividades almacenadas en Room y presenta una interfaz adaptada para estudiantes de Segundo Básico.
+La pantalla `StudentActivityScreen` consulta las actividades de los objetivos remotos autorizados de la asignatura. Usa Room si falla la conexión, si la asignatura carece de objetivos remotos o si sus objetivos autorizados todavía no tienen actividades.
 
 Sus características incluyen:
 
 - Presentación de preguntas de selección múltiple.
-- Cuatro alternativas por actividad.
+- Alternativas de respuesta según las opciones disponibles en cada actividad.
 - Distribución aleatoria de las alternativas mediante `shuffled()`.
 - Verificación de la respuesta seleccionada.
 - Retroalimentación visual inmediata.
@@ -207,7 +204,7 @@ Se utiliza una operación de inserción múltiple para guardar conjuntamente los
 
 Los registros permanecen almacenados después de cerrar y volver a abrir la aplicación.
 
-**Nota:** El modelo actual utiliza un identificador de estudiante simulado y el campo `intentosUsados` todavía no representa un contador real de reintentos.
+Room registra el número de intento por objetivo para el estudiante simulado. Los resultados e intentos de las actividades remotas se agrupan por el objetivo local de cada asignatura. El historial remoto tiene su propio flujo de consulta y edición.
 
 ### 7. Generación de Reportes JSON con Resultados Reales
 
@@ -281,164 +278,86 @@ Entre los elementos implementados se encuentran:
 
 Se utilizan componentes como `AnimatedVisibility`, `CircularProgressIndicator` y `animateContentSize`.
 
-El botón **Escuchar Instrucción** presenta el texto de apoyo de la actividad. La reproducción de audio real no forma parte de las funcionalidades verificadas de esta versión.
+El botón **Escuchar Instrucción** usa Text-to-Speech de Android cuando el motor admite español.
 
 ---
 
-## Integración con Microservicios (Retrofit)
+## Microservicios y configuración del emulador
 
-La app consume el backend local [mpaz-backend](https://github.com/miguelpastenm-web/mpaz-backend), formado por `ms-resultados` (puerto 9081) y `ms-contenidos` (puerto 9082). Los endpoints y las instrucciones para levantarlos están en el README de ese repositorio.
+Los dos servicios son aplicaciones Spring Boot 3 (Java 17) con bases de datos H2 independientes. El código y los contratos están en [mpaz-backend](https://github.com/miguelpastenm-web/mpaz-backend).
 
-Flujo de una operación (patrón MVVM):
+| Servicio | URL base en el emulador | Rutas que consume Android |
+|---|---|---|
+| `ms-resultados` | `http://10.0.2.2:9081/` | `/api/resultados` (GET y POST), `/api/resultados/{id}` (GET, PUT y DELETE). El listado admite `estudianteId` u `oaId` como filtros. |
+| `ms-contenidos` | `http://10.0.2.2:9082/` | `/api/objetivos` y `/api/actividades` (GET y POST), y sus rutas `/{id}` (GET, PUT y DELETE). El listado de actividades admite el filtro `oaId`. |
 
+Las URL están definidas en `data/remote/RetrofitClient.kt`. En el emulador estándar, `10.0.2.2` apunta al equipo anfitrión. En un teléfono físico conectado a la misma red, sustituye `10.0.2.2` por la IP del anfitrión en las dos URL locales y recompila. El manifiesto declara el permiso `INTERNET` y permite el tráfico HTTP de desarrollo.
+
+Instala Maven y JDK 17 en el anfitrión. Clona el backend y ejecuta cada servicio desde su propia carpeta, en terminales distintas.
+
+```bash
+git clone https://github.com/miguelpastenm-web/mpaz-backend.git
 ```
-Pantalla (Compose) → ViewModel (StateFlow) → Repository (Result<T>) → API Retrofit → ms-resultados → H2
-```
 
-| Capa | Archivo |
-|---|---|
-| Cliente Retrofit | `data/remote/RetrofitClient.kt` |
-| Interfaz de la API | `data/remote/ResultadosApi.kt` |
-| Modelo de transferencia | `data/remote/dto/ResultadoDto.kt` |
-| Repositorio | `data/repository/ResultadosRemoteRepository.kt` |
-| ViewModel | `viewmodel/student/ResultadosRemotosViewModel.kt` |
-| Pantalla | `ui/screens/student/ResultadosRemotosScreen.kt` |
-
-- **Dirección del servidor:** el emulador accede al computador mediante `http://10.0.2.2:9081/` (resultados) y `http://10.0.2.2:9082/` (contenidos).
-- **Permisos:** `INTERNET` y `usesCleartextTraffic` en el `AndroidManifest.xml`, porque el backend local usa HTTP.
-- **Manejo de errores:** el repositorio traduce cada respuesta a un `Result`. Informa los códigos 400 y 404, los errores del servidor y la falta de conexión, y no oculta la cancelación de corrutinas.
-- **CRUD:** desde el perfil **Estudiante**, el botón con ícono de nube abre **Historial en el servidor**, donde se listan, crean, editan y eliminan resultados.
-
-![Historial en el servidor](docs/capturas/historial-servidor.png)
-
-### Ejecutar el backend
-
-Con Java 17, en una terminal por cada microservicio:
+Terminal de resultados (9081)
 
 ```bash
 cd mpaz-backend/ms-resultados
-./mvnw spring-boot:run
+mvn spring-boot:run
 ```
 
-El backend debe estar encendido antes de abrir la pantalla **Historial en el servidor**.
-
----
-
-## Pruebas Unitarias y Cobertura
-
-Las pruebas usan **Kotest** (`FunSpec`), **MockK** y **kotlinx-coroutines-test** sobre JUnit Platform. La red se simula con mocks de `ResultadosApi`, por lo que no requieren el backend encendido.
+Terminal de contenidos (9082)
 
 ```bash
-./gradlew testDebugUnitTest
+cd mpaz-backend/ms-contenidos
+mvn spring-boot:run
 ```
 
-Resultado actual: **42 pruebas, 0 fallas**.
+- Desde **Mis Asignaturas → Mi Historial en el Servidor**, el estudiante puede consultar, crear, editar y eliminar registros de `ms-resultados`.
+- Desde **Panel Docente / UTP → Gestionar objetivos y actividades**, el docente administra el catálogo de `ms-contenidos`. Cuando la asignatura tiene objetivos remotos, el estudiante recibe las actividades de los objetivos autorizados.
+- Los repositorios remotos exponen los errores HTTP y de conexión a sus ViewModels. En contenidos, el mensaje del servidor se muestra cuando está disponible para HTTP 400 o 404.
 
-Reporte de cobertura con JaCoCo:
+![Pantalla Historial en el servidor](docs/capturas/historial-servidor.png)
 
-```bash
-./gradlew createDebugUnitTestCoverageReport
-```
+## API externa Dog CEO
 
-El reporte HTML queda en `app/build/reports/coverage/test/debug/index.html`.
+En **Mis Asignaturas → Conoce a los perros**, una foto aleatoria acompaña preguntas para observar y describir al animal. La pantalla indica cuándo está cargando, permite solicitar otra foto y ofrece reintentar si ocurre un error.
 
-| Clase | Cobertura de instrucciones |
-|---|---|
-| `ResultadosRemoteRepository` | 100 % (ramas 100 %) |
-| `ResultadosRemotosViewModel` | 89 % |
+`DogCeoApi` consulta `GET https://dog.ceo/api/breeds/image/random` sin autenticación. `DogCeoRepository` usa la URL devuelta para descargar la foto desde `images.dog.ceo` y el ViewModel prepara la imagen para Compose. La pantalla necesita acceso a Internet y funciona independientemente de los microservicios locales. [Documentación de Dog CEO](https://dog.ceo/dog-api/documentation/random)
 
-La cobertura se mide sobre la lógica de integración con el servidor. Las pantallas Compose no tienen pruebas unitarias.
+## Estructura general del proyecto
 
-![Pruebas unitarias](docs/capturas/test-resultados-42.png)
-![Cobertura del repositorio](docs/capturas/jacoco-repositorio.png)
-![Cobertura del ViewModel](docs/capturas/jacoco-viewmodel.png)
-
----
-
-## APK Firmado
-
-- **APK release:** `release/mpaz-pro-release.apk`
-- **Keystore:** `keystore/mpaz-release.jks` (alias `mpaz`). Las credenciales de firma están en `app/build.gradle.kts` y su uso es solo académico.
-- **Configuración:** bloque `signingConfigs` y `buildTypes.release` en `app/build.gradle.kts`.
-
-Para generarlo:
-
-```bash
-./gradlew assembleRelease
-```
-
-El APK queda en `app/build/outputs/apk/release/app-release.apk`.
-
-Para verificar la firma:
-
-```bash
-apksigner verify --verbose release/mpaz-pro-release.apk
-```
-
-La evidencia de la verificación y del keystore está en `docs/capturas/`.
-
----
-
-## Estructura General del Proyecto
+Las pantallas Compose observan estados publicados por los ViewModels. `AppRepository` accede a Room mediante sus DAO. Los repositorios remotos utilizan Retrofit con Gson para consultar cada servicio. Las preferencias de evaluación y perfil usan SharedPreferences.
 
 ```text
-cl.duoc.mpazpro
-│
-├── data
-│   ├── local
-│   │   ├── database
-│   │   │   ├── dao/
-│   │   │   ├── entities/
-│   │   │   ├── AppDatabase.kt
-│   │   │   ├── DatabaseMigrations.kt
-│   │   │   └── DatosInicialesCallback.kt
-│   │   ├── preferences
-│   │   │   ├── ConfiguracionEvaluacion.kt
-│   │   │   └── PerfilEstudianteManager.kt
-│   │   └── storage
-│   │       └── ReportStorageManager.kt
-│   │
-│   └── repository
-│       └── AppRepository.kt
-│
-├── ui
-│   ├── components
-│   ├── navigation
-│   │   ├── AppNavigation.kt
-│   │   └── AppScreens.kt
-│   ├── screens
-│   │   ├── student
-│   │   │   ├── ProfileCameraScreen.kt
-│   │   │   ├── StudentActivityScreen.kt
-│   │   │   └── StudentHomeScreen.kt
-│   │   └── teacher
-│   │       ├── ExportReportScreen.kt
-│   │       └── TeacherFormScreen.kt
-│   └── theme
-│
-├── viewmodel
-│   ├── student
-│   │   ├── ProfileViewModel.kt
-│   │   ├── StudentActivityViewModel.kt
-│   │   ├── StudentActivityViewModelFactory.kt
-│   │   └── StudentHomeViewModel.kt
-│   └── teacher
-│       ├── ExportReportViewModel.kt
-│       ├── TeacherFormUiState.kt
-│       └── TeacherFormViewModel.kt
-│
-└── MainActivity.kt
+app/
+├── src/main/
+│   ├── AndroidManifest.xml
+│   └── java/cl/duoc/mpazpro/
+│       ├── MainActivity.kt
+│       ├── data/
+│       │   ├── local/         Base de datos, preferencias y almacenamiento de reportes
+│       │   ├── remote/        RetrofitClient, interfaces de API y dto/
+│       │   └── repository/    AppRepository y repositorios de cada API
+│       ├── ui/
+│       │   ├── components/    Campos validados y lector de instrucciones
+│       │   ├── navigation/    Rutas y grafo de navegación
+│       │   ├── screens/      Pantallas student/ y teacher/
+│       │   └── theme/         Colores, tipografía y tema
+│       └── viewmodel/         Estados y lógica de presentación
+├── src/test/                 Pruebas unitarias JVM
+└── src/androidTest/          Pruebas instrumentadas
+docs/capturas/               Evidencias de ejecución
+release/                     APK firmado del repositorio
 ```
-
----
 
 ## Instrucciones de Instalación y Ejecución
 
 ### Requisitos Previos
 
-- Android Studio compatible con el proyecto.
+- Android Studio compatible con Android Gradle Plugin 8.13.1.
 - Java Development Kit (JDK) 17.
-- Android SDK configurado.
+- Android SDK Platform 35 instalado. Instala también Android SDK Build-Tools si vas a usar `apksigner`.
 - Dispositivo físico o emulador con Android 8.0 (API 26) o superior.
 - Conexión a Internet para descargar las dependencias durante la sincronización inicial de Gradle.
 
@@ -447,7 +366,8 @@ cl.duoc.mpazpro
 1. Clonar el repositorio:
 
    ```bash
-   git clone https://github.com/miguelpastenm-web/MPAZ-PRO-2-App.git
+   git clone --branch main https://github.com/miguelpastenm-web/MPAZ-PRO-2-App.git
+   cd MPAZ-PRO-2-App
    ```
 
 2. Abrir Android Studio y seleccionar **Open**.
@@ -460,19 +380,45 @@ cl.duoc.mpazpro
 
 6. Crear o iniciar un dispositivo virtual mediante **Device Manager**, o conectar un dispositivo físico Android.
 
-7. Seleccionar la configuración de ejecución `app`.
+7. Para probar las pantallas remotas, inicia los servicios correspondientes en el anfitrión. Luego selecciona la configuración de ejecución `app`.
 
 8. Presionar **Run** o utilizar `Shift + F10`.
 
 9. Conceder los permisos necesarios cuando se utilicen recursos del dispositivo, como la cámara.
 
-### Consideración sobre las ramas
+## Pruebas unitarias y compilación
 
-El repositorio utiliza `main` como rama principal y ramas de trabajo para el desarrollo colaborativo.
+Desde la raíz del repositorio, ejecuta los siguientes comandos con el Gradle Wrapper. En Windows, usa `gradlew.bat` en lugar de `./gradlew`.
 
-Para utilizar la versión definitiva del proyecto se recomienda comprobar que `main` incluya las últimas funcionalidades integradas y verificadas.
+```bash
+./gradlew testDebugUnitTest
+./gradlew assembleDebug
+```
 
----
+- **Pruebas unitarias.** Los resultados XML quedan en `app/build/test-results/testDebugUnitTest/` y el informe HTML en `app/build/reports/tests/testDebugUnitTest/index.html`. La suite incluye pruebas de ambos microservicios y Dog CEO con respuestas simuladas.
+- **APK de depuración.** El archivo queda en `app/build/outputs/apk/debug/app-debug.apk`.
+- **Pruebas instrumentadas.** Ejecuta `./gradlew connectedDebugAndroidTest` con un emulador iniciado o un teléfono conectado.
+- **Cobertura JaCoCo.** Ejecuta `./gradlew createDebugUnitTestCoverageReport`. El informe HTML queda en `app/build/reports/coverage/test/debug/index.html`.
+
+## Capturas y evidencias de ejecución
+
+1. Ejecuta el flujo en Android Studio y captura la pantalla desde el emulador. Para las pruebas, ejecuta Gradle y conserva el informe generado o captura el resumen de la ejecución.
+2. Agrega las imágenes a `docs/capturas/` con nombres descriptivos y enlázalas en el README. Para informes de texto, conserva el comando, la revisión probada y el resultado observado. Usa datos de demostración y omite datos personales y material de firma privado.
+3. Indica qué flujo muestra cada captura y en qué revisión se tomó. Para resultados de pruebas, anota el total medido en esa ejecución.
+
+En la revisión `4f8b6e3` se ejecutaron 80 pruebas unitarias, todas aprobadas. La [captura de 42 pruebas](docs/capturas/test-resultados-42.png) y las capturas de JaCoCo del [repositorio](docs/capturas/jacoco-repositorio.png) y del [ViewModel](docs/capturas/jacoco-viewmodel.png) corresponden a evidencias anteriores de la integración de resultados.
+
+## APK firmado
+
+El repositorio incluye [un APK release firmado](release/mpaz-pro-release.apk) incorporado en la revisión `fe90a08`. Para generar un APK con los cambios actuales, compila la revisión que quieras distribuir.
+
+Con acceso autorizado al material de firma, mantenlo fuera del control de versiones y ejecuta **Build → Generate Signed Bundle / APK → APK** en Android Studio. Selecciona la variante `release` y proporciona los datos de firma en el asistente. Si el entorno local ya tiene configurada la firma de `release`, también puedes usar `./gradlew assembleRelease`. Gradle genera el APK en `app/build/outputs/apk/release/`. Mantén las credenciales y el almacén privado fuera de los commits y de las evidencias.
+
+Para comprobar la firma del APK incluido, usa `apksigner` de Android SDK Build-Tools.
+
+```bash
+apksigner verify --verbose release/mpaz-pro-release.apk
+```
 
 ## Pruebas Funcionales Realizadas
 
@@ -505,7 +451,7 @@ Por tratarse de un proyecto académico desarrollado como MVP, existen aspectos q
 
 - La identificación de estudiantes utiliza registros simulados.
 - El máximo de intentos se aplica solo cuando el docente configuró la asignatura; si no la configuró, el estudiante no tiene límite. Los intentos se cuentan sobre el estudiante simulado.
-- La selección de asignatura del formulario docente no controla automáticamente todas las actividades que aparecen al estudiante.
+- El catálogo remoto depende de la autorización del objetivo y de las actividades asociadas a él.
 - La lectura en voz alta de las instrucciones depende del motor Text-to-Speech y del idioma español instalados en el dispositivo; si no están disponibles, no se reproduce.
 - Los reportes representan los resultados efectivamente almacenados, pero no disponen de información real de matrícula del establecimiento.
 - El sistema puede ampliarse con gestión integral de usuarios, cursos y evaluaciones.
@@ -516,7 +462,7 @@ Por tratarse de un proyecto académico desarrollado como MVP, existen aspectos q
 
 - Incorporar autenticación y perfiles de usuario.
 - Registrar estudiantes y cursos reales.
-- Aplicar automáticamente los parámetros docentes a la selección de actividades.
+- Incorporar el control de la fecha límite a la rendición de evaluaciones.
 - Ampliar la cantidad de actividades y objetivos de aprendizaje.
 - Generar reportes adicionales en PDF.
 - Incorporar nuevas visualizaciones del progreso académico.
@@ -525,7 +471,7 @@ Por tratarse de un proyecto académico desarrollado como MVP, existen aspectos q
 
 ## Conclusión
 
-**MPAZ PRO 2.º** integra herramientas de desarrollo móvil Android para ofrecer una experiencia didáctica interactiva y un mecanismo local de registro de resultados académicos.
+**MPAZ PRO 2.0** integra herramientas de desarrollo móvil Android para ofrecer una experiencia didáctica interactiva y un mecanismo local de registro de resultados académicos.
 
 El proyecto permite demostrar el uso de **Kotlin, Jetpack Compose, arquitectura MVVM, Room Database, StateFlow, validaciones desacopladas, recursos nativos y trabajo colaborativo mediante GitHub y Trello**.
 

@@ -10,6 +10,7 @@ sealed class AppScreens(val route: String) {
     data object ActividadesEstudiante : AppScreens("actividades_estudiante/{oaId}") {
         fun createRoute(oaId: Int) = "actividades_estudiante/$oaId"
     }
+    data object ExplorarPerros : AppScreens("explorar_perros")
     data object PerfilCamara : AppScreens("perfil_camara")
     data object HistorialServidor : AppScreens("historial_servidor")
     data object ExportarReporte : AppScreens("exportar_reporte")

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cl.duoc.mpazpro.data.local.database.AppDatabase
 import cl.duoc.mpazpro.data.repository.AppRepository
+import cl.duoc.mpazpro.data.repository.ContenidosRemoteRepository
 
 /**
  * Factory encargada de crear StudentActivityViewModel.
@@ -36,7 +37,7 @@ class StudentActivityViewModelFactory(
             // Creamos el ViewModel entregándole Application y AppRepository.
             // El cast es necesario por el tipo genérico T.
             @Suppress("UNCHECKED_CAST")
-            return StudentActivityViewModel(application, repository) as T
+            return StudentActivityViewModel(application, repository, ContenidosRemoteRepository()) as T
         }
 
         // Informamos si se solicita un ViewModel no compatible.

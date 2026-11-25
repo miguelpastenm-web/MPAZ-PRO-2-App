@@ -6,6 +6,13 @@ import cl.duoc.mpazpro.data.local.database.entities.ResultadoPruebaEntity
 import cl.duoc.mpazpro.data.local.preferences.ConfiguracionEvaluacion
 import cl.duoc.mpazpro.data.local.preferences.EvaluacionConfig
 import cl.duoc.mpazpro.data.repository.AppRepository
+import cl.duoc.mpazpro.data.repository.ContenidosRemoteRepository
+import cl.duoc.mpazpro.data.remote.ContenidosApi
+import cl.duoc.mpazpro.data.remote.dto.ActividadDto
+import cl.duoc.mpazpro.data.remote.dto.ObjetivoDto
+import cl.duoc.mpazpro.respuestaExitosa
+import cl.duoc.mpazpro.respuestaFallida
+import java.io.IOException
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -90,6 +97,76 @@ class StudentActivityViewModelTest {
         assertTrue(viewModel.actividades.value.isEmpty())
         assertNotNull(viewModel.mensajeError.value)
         assertFalse(viewModel.estaCargando.value)
+    }
+
+    @Test
+    fun cargarActividades_consultaOaRemotoAutorizadoYConservaLaAsignaturaLocal() {
+        val api = mockk<ContenidosApi>()
+        val objetivo = ObjetivoDto(17, 2, "MA02 OA 01", "Sumas", true)
+        coEvery { api.listarObjetivos() } returns respuestaExitosa(listOf(
+            objetivo, objetivo.copy(id = 18, autorizado = false), objetivo.copy(id = 19, asignaturaId = 1)
+        ))
+        coEvery { api.listarActividades(17) } returns respuestaExitosa(listOf(
+            ActividadDto(32, 17, "Sumas", "opcion", "¿2+2?", "4", "3", "5", null)
+        ))
+        conectarContenidos(api)
+
+        viewModel.cargarActividades(2)
+
+        val pregunta = viewModel.actividades.value.single()
+        assertEquals(32, pregunta.id)
+        assertEquals(2, pregunta.oaId)
+        assertEquals("", pregunta.alternativaIncorrecta3)
+        coVerify(exactly = 1) { api.listarActividades(any()) }
+        assertFalse(viewModel.estaCargando.value)
+    }
+
+    @Test
+    fun cargarActividades_conObjetivoRemotoSinActividadesConservaLasPreguntasDeRoom() {
+        val api = mockk<ContenidosApi>()
+        val objetivo = ObjetivoDto(17, 2, "MA02 OA 01", "Sumas", true)
+        coEvery { api.listarObjetivos() } returns respuestaExitosa(listOf(objetivo))
+        coEvery { api.listarActividades(17) } returns respuestaExitosa(emptyList())
+        conectarContenidos(api)
+
+        viewModel.cargarActividades(2)
+
+        assertEquals(actividades, viewModel.actividades.value)
+        assertNull(viewModel.mensajeError.value)
+        assertFalse(viewModel.estaCargando.value)
+    }
+
+    @Test
+    fun cargarActividades_sinConexionMuestraAvisoYCargaRoom() {
+        val api = mockk<ContenidosApi>()
+        coEvery { api.listarObjetivos() } throws IOException("sin conexión")
+        conectarContenidos(api)
+
+        viewModel.cargarActividades(2)
+
+        assertEquals(actividades, viewModel.actividades.value)
+        assertNotNull(viewModel.avisoContenidos.value)
+        assertNull(viewModel.mensajeError.value)
+        assertFalse(viewModel.estaCargando.value)
+    }
+
+    @Test
+    fun cargarActividades_conErrorHttpMuestraElCodigo() {
+        val api = mockk<ContenidosApi>()
+        coEvery { api.listarObjetivos() } returns respuestaFallida<List<ObjetivoDto>>(404)
+        conectarContenidos(api)
+
+        viewModel.cargarActividades(2)
+
+        assertTrue(viewModel.actividades.value.isEmpty())
+        assertTrue(viewModel.mensajeError.value.orEmpty().contains("404"))
+        assertFalse(viewModel.estaCargando.value)
+    }
+
+    private fun conectarContenidos(api: ContenidosApi) {
+        viewModel = StudentActivityViewModel(
+            mockk<Application>(relaxed = true), repository, ContenidosRemoteRepository(api)
+        )
     }
 
     @Test

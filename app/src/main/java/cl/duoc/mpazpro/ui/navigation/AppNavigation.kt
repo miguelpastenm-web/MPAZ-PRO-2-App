@@ -32,6 +32,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import cl.duoc.mpazpro.ui.screens.student.ProfileCameraScreen
+import cl.duoc.mpazpro.ui.screens.student.ExplorarPerrosScreen
 import cl.duoc.mpazpro.ui.screens.student.ResultadosRemotosScreen
 import cl.duoc.mpazpro.ui.screens.student.StudentActivityScreen
 import cl.duoc.mpazpro.ui.screens.student.StudentHomeScreen
@@ -88,8 +89,12 @@ fun AppNavigation(
                     navController.navigate(AppScreens.ActividadesEstudiante.createRoute(oaId))
                 },
                 onNavigateToProfile = { navController.navigate(AppScreens.PerfilCamara.route) },
-                onNavigateToHistorial = { navController.navigate(AppScreens.HistorialServidor.route) }
+                onNavigateToHistorial = { navController.navigate(AppScreens.HistorialServidor.route) },
+                onNavigateToExplorarPerros = { navController.navigate(AppScreens.ExplorarPerros.route) }
             )
+        }
+        composable(AppScreens.ExplorarPerros.route) {
+            ExplorarPerrosScreen(onBack = { navController.popBackStack() })
         }
         composable(AppScreens.HistorialServidor.route) {
             ResultadosRemotosScreen(

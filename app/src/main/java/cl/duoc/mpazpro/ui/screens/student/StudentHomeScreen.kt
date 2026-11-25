@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarToday
@@ -70,6 +71,7 @@ fun StudentHomeScreen(
     onSelectMateria: (Int) -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToHistorial: () -> Unit,
+    onNavigateToExplorarPerros: () -> Unit,
     homeViewModel: StudentHomeViewModel = viewModel()
 ) {
     val scrollState = rememberScrollState()
@@ -219,6 +221,16 @@ fun StudentHomeScreen(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
+            }
+
+            OutlinedButton(
+                onClick = onNavigateToExplorarPerros,
+                modifier = Modifier.fillMaxWidth().height(54.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(Icons.Default.Pets, contentDescription = null)
+                Spacer(modifier = Modifier.width(10.dp))
+                Text("Conoce a los perros", style = MaterialTheme.typography.titleMedium)
             }
 
             // Acceso al CRUD de resultados guardados en el microservicio

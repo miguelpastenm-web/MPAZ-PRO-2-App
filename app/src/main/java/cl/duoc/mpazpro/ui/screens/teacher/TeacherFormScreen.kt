@@ -76,6 +76,17 @@ fun TeacherFormScreen(
         "Historia y Geografía"
     )
 
+    var mostrarContenidos by remember { mutableStateOf(false) }
+    if (mostrarContenidos) {
+        val asignaturaId = when (uiState.asignatura) {
+            "Lenguaje y Comunicación" -> 1
+            "Matemática" -> 2
+            "Ciencias Naturales" -> 3
+            else -> 4
+        }
+        ContenidosDocenteDialog(asignaturaId, onCerrar = { mostrarContenidos = false })
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -362,6 +373,13 @@ fun TeacherFormScreen(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text("Limpiar Formulario", style = MaterialTheme.typography.bodyMedium)
+            }
+
+            FilledTonalButton(
+                onClick = { mostrarContenidos = true },
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) {
+                Text("Gestionar objetivos y actividades")
             }
 
             if (onNavigateToExport != null) {

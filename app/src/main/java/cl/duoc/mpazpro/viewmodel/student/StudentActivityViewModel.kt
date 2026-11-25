@@ -9,16 +9,20 @@ import cl.duoc.mpazpro.data.local.database.entities.ActividadEntity
 import cl.duoc.mpazpro.data.local.database.entities.ResultadoPruebaEntity
 import cl.duoc.mpazpro.data.local.preferences.ConfiguracionEvaluacion
 import cl.duoc.mpazpro.data.repository.AppRepository
+import cl.duoc.mpazpro.data.repository.ConexionContenidosException
+import cl.duoc.mpazpro.data.repository.ContenidosRemoteRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
  * ViewModel de las actividades del estudiante.
  *
- * Se encarga de cargar las preguntas desde Room,
+ * Se encarga de cargar las preguntas del catálogo remoto o de Room,
  * comprobar las respuestas y calcular los puntajes.
  *
  * También administra los estados de carga y guardado
@@ -29,7 +33,8 @@ import kotlinx.coroutines.launch
  */
 class StudentActivityViewModel(
     application: Application,
-    private val repository: AppRepository
+    private val repository: AppRepository,
+    private val contenidos: ContenidosRemoteRepository? = null
 ) : AndroidViewModel(application) {
 
     /**
@@ -39,12 +44,13 @@ class StudentActivityViewModel(
      */
     constructor(application: Application) : this(
         application,
-        AppRepository(AppDatabase.getDatabase(application.applicationContext))
+        AppRepository(AppDatabase.getDatabase(application.applicationContext)),
+        ContenidosRemoteRepository()
     )
 
     private val context = application.applicationContext
 
-    // Guardamos las actividades obtenidas desde la base de datos.
+    // Guardamos las preguntas de la evaluación actual.
     // La pantalla puede observarlas, pero no modificarlas directamente.
     private val _actividades =
         MutableStateFlow<List<ActividadEntity>>(emptyList())
@@ -63,6 +69,9 @@ class StudentActivityViewModel(
 
     val mensajeError: StateFlow<String?> =
         _mensajeError.asStateFlow()
+
+    private val _avisoContenidos = MutableStateFlow<String?>(null)
+    val avisoContenidos = _avisoContenidos.asStateFlow()
 
     // Indica si Room está guardando los resultados.
     private val _guardandoResultados = MutableStateFlow(false)
@@ -84,44 +93,82 @@ class StudentActivityViewModel(
     }
 
     /**
-     * Consulta las actividades mediante el repositorio.
-     * Si se proporciona un oaId válido (> 0), filtra solo las actividades de esa materia desde Room.
-     * De lo contrario, consulta todas las actividades disponibles.
+     * La ruta de estudiante identifica la asignatura con el OA precargado de Room.
+     * El catálogo remoto se consulta con los identificadores que devuelve el servidor.
      */
     fun cargarActividades(oaId: Int? = null) {
         jobCarga?.cancel()
         jobCarga = viewModelScope.launch {
             _estaCargando.value = true
+            _actividades.value = emptyList()
             _mensajeError.value = null
+            _avisoContenidos.value = null
 
             try {
-                // Si el estudiante ya agotó sus intentos, no cargamos la prueba.
-                if (oaId != null && oaId > 0) {
-                    val mensaje = mensajeIntentosAgotados(oaId, ESTUDIANTE_FICTICIO_ID)
+                val asignaturaId = oaId?.takeIf { it > 0 }
+                if (asignaturaId != null) {
+                    val mensaje = mensajeIntentosAgotados(asignaturaId, ESTUDIANTE_FICTICIO_ID)
                     if (mensaje != null) {
                         _mensajeError.value = mensaje
-                        _estaCargando.value = false
                         return@launch
                     }
                 }
 
-                val flow = if (oaId != null && oaId > 0) {
-                    repository.obtenerActividadesPorObjetivo(oaId)
+                val remotas = try {
+                    contenidos?.let { consultarCatalogo(it, asignaturaId) }
+                } catch (e: ConexionContenidosException) {
+                    _avisoContenidos.value = "${e.message} Se muestran las actividades locales."
+                    null
+                }
+                if (remotas != null) {
+                    _actividades.value = remotas
+                    return@launch
+                }
+
+                val locales = if (asignaturaId != null) {
+                    repository.obtenerActividadesPorObjetivo(asignaturaId)
                 } else {
                     repository.obtenerActividades()
                 }
-                flow.collect { lista ->
+                locales.collect { lista ->
                     _actividades.value = lista
                     _estaCargando.value = false
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                if (e !is kotlinx.coroutines.CancellationException) {
-                    _mensajeError.value =
-                        "No se pudieron cargar las actividades."
-                    _estaCargando.value = false
-                }
+                _mensajeError.value = e.message ?: "No se pudieron cargar las actividades."
+            } finally {
+                if (isActive) _estaCargando.value = false
             }
         }
+    }
+
+    private suspend fun consultarCatalogo(
+        contenidos: ContenidosRemoteRepository,
+        asignaturaId: Int?
+    ): List<ActividadEntity>? {
+        val objetivos = contenidos.listarObjetivos().getOrThrow()
+            .filter { it.asignaturaId in 1..4 && (asignaturaId == null || it.asignaturaId == asignaturaId) }
+        if (objetivos.isEmpty()) return null
+        val publicados = objetivos.filter { it.autorizado }
+        if (publicados.isEmpty()) return emptyList()
+        return publicados.flatMap { objetivo ->
+            contenidos.listarActividades(objetivo.id).getOrThrow().map { actividad ->
+                ActividadEntity(
+                    id = actividad.id,
+                    // Los intentos y reportes de Room conservan el OA local de la asignatura.
+                    oaId = objetivo.asignaturaId,
+                    titulo = actividad.titulo,
+                    tipoDesafio = actividad.tipoDesafio,
+                    pregunta = actividad.pregunta,
+                    respuestaCorrecta = actividad.respuestaCorrecta,
+                    alternativaIncorrecta1 = actividad.alternativaIncorrecta1.orEmpty(),
+                    alternativaIncorrecta2 = actividad.alternativaIncorrecta2.orEmpty(),
+                    alternativaIncorrecta3 = actividad.alternativaIncorrecta3.orEmpty()
+                )
+            }
+        }.takeIf { it.isNotEmpty() }
     }
 
     /**
