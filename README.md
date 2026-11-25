@@ -4,7 +4,7 @@ Aplicación móvil Android desarrollada en **Kotlin y Jetpack Compose** para el 
 
 - **Asignatura:** Desarrollo de Aplicaciones Móviles (DSY1105)
 - **Institución:** Duoc UC
-- **Evaluación:** Evaluación Parcial 2 / Evaluación Parcial 3
+- **Evaluación:** Evaluaciones Parciales 4 y 5
 - **Plataforma:** Android
 - **Modalidad:** Aplicación Android con persistencia local (Room) e integración con microservicios Spring Boot ejecutados en el computador
 
@@ -293,7 +293,7 @@ Los dos servicios son aplicaciones Spring Boot 3 (Java 17) con bases de datos H2
 
 Las URL están definidas en `data/remote/RetrofitClient.kt`. En el emulador estándar, `10.0.2.2` apunta al equipo anfitrión. En un teléfono físico conectado a la misma red, sustituye `10.0.2.2` por la IP del anfitrión en las dos URL locales y recompila. El manifiesto declara el permiso `INTERNET` y permite el tráfico HTTP de desarrollo.
 
-Instala Maven y JDK 17 en el anfitrión. Clona el backend y ejecuta cada servicio desde su propia carpeta, en terminales distintas.
+Instala JDK 17 en el anfitrión. Cada servicio incluye su Maven Wrapper (`mvnw`), que descarga Maven la primera vez. Clona el backend y ejecuta cada servicio desde su propia carpeta, en terminales distintas.
 
 ```bash
 git clone https://github.com/miguelpastenm-web/mpaz-backend.git
@@ -303,14 +303,14 @@ Terminal de resultados (9081)
 
 ```bash
 cd mpaz-backend/ms-resultados
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
 Terminal de contenidos (9082)
 
 ```bash
 cd mpaz-backend/ms-contenidos
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
 - Desde **Mis Asignaturas → Mi Historial en el Servidor**, el estudiante puede consultar, crear, editar y eliminar registros de `ms-resultados`.
@@ -402,22 +402,31 @@ Desde la raíz del repositorio, ejecuta los siguientes comandos con el Gradle Wr
 
 ## Capturas y evidencias de ejecución
 
-1. Ejecuta el flujo en Android Studio y captura la pantalla desde el emulador. Para las pruebas, ejecuta Gradle y conserva el informe generado o captura el resumen de la ejecución.
-2. Agrega las imágenes a `docs/capturas/` con nombres descriptivos y enlázalas en el README. Para informes de texto, conserva el comando, la revisión probada y el resultado observado. Usa datos de demostración y omite datos personales y material de firma privado.
-3. Indica qué flujo muestra cada captura y en qué revisión se tomó. Para resultados de pruebas, anota el total medido en esa ejecución.
+Las evidencias están en `docs/capturas/`:
 
-En la revisión `4f8b6e3` se ejecutaron 80 pruebas unitarias, todas aprobadas. La [captura de 42 pruebas](docs/capturas/test-resultados-42.png) y las capturas de JaCoCo del [repositorio](docs/capturas/jacoco-repositorio.png) y del [ViewModel](docs/capturas/jacoco-viewmodel.png) corresponden a evidencias anteriores de la integración de resultados.
+- Pantalla de la app **Mi Historial en el Servidor**, conectada a `ms-resultados` (ver captura en la sección de microservicios).
+- [Resumen de 42 pruebas unitarias](docs/capturas/test-resultados-42.png), de la integración con `ms-resultados`.
+- Cobertura JaCoCo del [repositorio remoto](docs/capturas/jacoco-repositorio.png) y del [ViewModel](docs/capturas/jacoco-viewmodel.png).
+- Verificación de la firma del APK ([apksigner](docs/capturas/apk-firmado-apksigner.txt)) y datos del almacén de claves ([keytool](docs/capturas/keystore-jks-keytool.txt)).
+
+Las capturas de pruebas y JaCoCo corresponden a la integración de resultados. En la revisión `4f8b6e3` se ejecutaron 80 pruebas unitarias, todas aprobadas, incluidas las de contenidos y Dog CEO.
 
 ## APK firmado
 
-El repositorio incluye [un APK release firmado](release/mpaz-pro-release.apk) incorporado en la revisión `fe90a08`. Para generar un APK con los cambios actuales, compila la revisión que quieras distribuir.
+El repositorio incluye el [APK release firmado](release/mpaz-pro-release.apk) y el almacén de claves `keystore/mpaz-release.jks` (alias `mpaz`). La configuración `signingConfigs` de `app/build.gradle.kts` los usa en la variante `release`. Se versionan por requisito de la entrega académica; en un proyecto real, el almacén y sus credenciales se mantienen fuera del repositorio.
 
-Con acceso autorizado al material de firma, mantenlo fuera del control de versiones y ejecuta **Build → Generate Signed Bundle / APK → APK** en Android Studio. Selecciona la variante `release` y proporciona los datos de firma en el asistente. Si el entorno local ya tiene configurada la firma de `release`, también puedes usar `./gradlew assembleRelease`. Gradle genera el APK en `app/build/outputs/apk/release/`. Mantén las credenciales y el almacén privado fuera de los commits y de las evidencias.
+Para generar un APK con los cambios actuales:
 
-Para comprobar la firma del APK incluido, usa `apksigner` de Android SDK Build-Tools.
+```bash
+./gradlew assembleRelease
+cp app/build/outputs/apk/release/app-release.apk release/mpaz-pro-release.apk
+```
+
+Para comprobar la firma del APK y el almacén, usa `apksigner` de Android SDK Build-Tools y `keytool`:
 
 ```bash
 apksigner verify --verbose release/mpaz-pro-release.apk
+keytool -list -v -keystore keystore/mpaz-release.jks
 ```
 
 ## Pruebas Funcionales Realizadas
