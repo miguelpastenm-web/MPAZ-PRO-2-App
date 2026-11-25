@@ -1,3 +1,4 @@
+$ apksigner verify --verbose --print-certs release/mpaz-pro-release.apk
 Verifies
 Verified using v1 scheme (JAR signing): false
 Verified using v2 scheme (APK Signature Scheme v2): true
@@ -6,3 +7,12 @@ Verified using v3.1 scheme (APK Signature Scheme v3.1): false
 Verified using v4 scheme (APK Signature Scheme v4): false
 Verified for SourceStamp: false
 Number of signers: 1
+Signer #1 certificate DN: CN=Miguel Pasten, OU=Informatica, O=Duoc UC, L=Santiago, ST=RM, C=CL
+Signer #1 certificate SHA-256 digest: f04a4d29898edc6623cd364eeb68a025fa1730839aa6699c783545fbc2e24dfa
+Signer #1 certificate SHA-1 digest: 495f270d4656649e15b86555f6fece5eee8482f0
+Signer #1 certificate MD5 digest: 0cd8a6bc5334d723a1cc9819db8153fd
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 2048
+Signer #1 public key SHA-256 digest: ba95203e41aec52026760ca5f40952e50d9e002dd84966773570d7a6340c0e89
+Signer #1 public key SHA-1 digest: d162ef6d96159b7f737fe51158e58404f9fde4d0
+Signer #1 public key MD5 digest: f332df059efa7951b69bc7549a0fdef3

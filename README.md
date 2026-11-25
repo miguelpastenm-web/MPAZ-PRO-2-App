@@ -409,7 +409,7 @@ Las evidencias están en `docs/capturas/`:
 - Cobertura JaCoCo del [repositorio remoto](docs/capturas/jacoco-repositorio.png) y del [ViewModel](docs/capturas/jacoco-viewmodel.png).
 - Verificación de la firma del APK ([apksigner](docs/capturas/apk-firmado-apksigner.txt)) y datos del almacén de claves ([keytool](docs/capturas/keystore-jks-keytool.txt)).
 
-Las capturas de pruebas y JaCoCo corresponden a la integración de resultados. En la revisión `4f8b6e3` se ejecutaron 80 pruebas unitarias, todas aprobadas, incluidas las de contenidos y Dog CEO.
+Las capturas de pruebas y JaCoCo corresponden a la integración de resultados. En la revisión `c635612` se ejecutaron 81 pruebas unitarias, todas aprobadas, incluidas las de contenidos y Dog CEO.
 
 ## APK firmado
 
